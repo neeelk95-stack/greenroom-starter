@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Deal Builder rationale snapshots (per-save artifacts; not source code)
+data/dealRationales/
+
+# Case-study analysis artifacts (generated locally, not part of the prototype)
+venue_earnings_per_show.csv
+venue_earnings_per_show_excel.xlsx
+~$*.xlsx

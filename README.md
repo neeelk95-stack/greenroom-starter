@@ -12,6 +12,78 @@ This is the starter codebase for the Greenroom Applied AI PM case study.
 
 You're looking at a working but mediocre product. It's enough to feel real, but every workflow has gaps. **Your job isn't to fix everything — it's to pick a slice and design it well.** See your case study brief for full instructions.
 
+---
+
+## The slice: Deal Builder (this prototype)
+
+This fork ships a working prototype of a **Deal Builder** — a booking-time
+surface that replaces "Mariana types a deal sheet" with "Mariana approves a
+recommended deal sheet," with the math derived from the venue's own data and
+the rationale visible to both sides.
+
+### Where to look
+
+| Route | What it is |
+|---|---|
+| `/shows/[id]` | Existing show page, with a new **"Open Deal Builder"** button next to "Settle show" |
+| `/shows/[id]/deal-builder` | The new surface. Recommendations + provenance + bonus engine + freetext reconciliation |
+| `/shows/[id]/deal-builder/preview` | The agent-facing deal sheet, with the same numbers and rationale |
+
+**Try this path:**
+1. Open any past show (e.g. from `/shows`).
+2. Click **Open Deal Builder**.
+3. Try editing the **Expense cap** outside the recommended band — the override modal pops with `public/internal` toggle (FR-M-10, BR-09).
+4. Toggle **Walkout pot** on a low-projected-gross show — it's hard-blocked per BR-05c.
+5. Try a `door` deal — basis is locked to `net` per BR-04.
+6. Open the freetext field — if the deal has a contradiction (try `show_0207`), it's flagged before save.
+7. Click **Save & open deal sheet** to see the agent-facing preview at `/shows/[id]/deal-builder/preview`.
+
+The saved deal rationale lands in `data/dealRationales/` as a JSON snapshot
+(in production it'd be a column on `deals`).
+
+### How this maps to the case study rubric
+
+| Rubric principle | Evidence in this fork |
+|---|---|
+| **1. Scope tightly. Defend the cut.** | New routes are only `/deal-builder` and `/deal-builder/preview`. The existing `/settle` worksheet is **untouched** — the slice is booking-time deal modeling, not settlement-time math. The PRD's BRs and non-goals are visible 1:1 in the code (search for `BR-01`…`BR-11` in `lib/`). |
+| **2. Take it deep.** | All **5 deal types** (`flat`, `vs`, `percentage_of_net`, `percentage_of_gross`, `door`) get type-specific recommendations. All **4 bonus structures** (`net_threshold`, `attendance_threshold`, `sellout`, `tier_ratchet`) net-trigger by construction. Repeat-vs-new-artist branches in the recommender. T-7 cancellation flag. Freetext-vs-structured reconciliation. Override+provenance loop end-to-end. |
+| **3. Show your reasoning.** | Every recommended term has a **"Why this?"** affordance showing source data + confidence. Overrides require a reason that propagates to the saved rationale. The agent-facing preview renders the *same* rationale block Mariana saw — same numbers, same provenance, both sides on one source of truth. |
+| **4. Design for humans, not screens.** | Single hero number (projected venue earnings, BR-02). Phone-first layout (sticky action bar, full-width modals on narrow). Form is **never empty** — recommendations pre-fill on load. Errors render above the field, not as toasts (UX-04). Provenance is one tap, not two. |
+| **5. Use AI like a senior teammate.** | **Deliberate restraint.** Deal math is deterministic — must be reproducible/defensible to agents. The single AI surface is **freetext-vs-structured contradiction detection** (`lib/freetextReconciliation.ts`) where prose drift is the actual failure mode. V1 ships with a regex implementation so the hiring team can run without an API key; the `detect()` interface is shaped for a drop-in LLM upgrade. Provenance throughout the UX is the explainability layer. |
+
+### Architectural notes
+
+```
+lib/
+  artistHistory.ts         # Artist + deal-type aggregates (p25/p50/p75) with source-show IDs
+  dealRecommender.ts       # BR-driven recommendations per deal type
+  dealMathV2.ts            # Canonical net-first computation (BR-01) — used by both Mariana and agent views
+  freetextReconciliation.ts # Contradiction detector (regex v1; LLM-ready interface)
+  projection.ts            # T-7 sales projection for the cancellation flag (BR-07)
+  dealRationaleStore.ts    # Persists rationale snapshots to data/dealRationales/
+components/deal-builder/
+  DealBuilderForm.tsx      # The main client surface
+app/shows/[id]/deal-builder/
+  page.tsx                 # Server entry — prepares recommendations, renders form
+  preview/page.tsx         # Agent-facing preview, reads the saved rationale
+  actions.ts               # Server action: save → write rationale → redirect to preview
+```
+
+### What's intentionally cut from this prototype
+
+- **GM dashboard** — would surface overrides and approval queue. Out of slice.
+- **Real PDF generation** — preview is HTML; visually equivalent for review.
+- **Live ticket-pull integration** — `projection.ts` uses a naive multiplier.
+- **Multi-venue** — single venue (The Crescent).
+- **Settlement-time changes** — `/settle` is untouched on purpose.
+
+See the case study memo for the full PRD: business requirements (BR-01..BR-11),
+functional requirements per persona (FR-M, FR-A, FR-G, FR-P, FR-X), trade-offs,
+quantified impact (~$135K addressable / ~$67K conservative on this venue's
+505-show dataset), and what ships next.
+
+---
+
 ## Before you start
 
 You'll need:

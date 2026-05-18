@@ -6,6 +6,7 @@ import {
   AlertCircle,
   Clock,
   TrendingUp,
+  Sparkles,
 } from "lucide-react";
 import { getShowById } from "@/lib/queries";
 import {
@@ -119,12 +120,20 @@ export default async function ShowDetailPage({
               </span>
             </div>
           </div>
-          <Link href={`/shows/${show.id}/settle`} className="mt-6 shrink-0">
-            <Button variant="brand" size="lg">
-              <FileSpreadsheet className="h-4 w-4" />
-              {settlement ? "View settlement" : "Settle show"}
-            </Button>
-          </Link>
+          <div className="mt-6 shrink-0 flex flex-col gap-2 items-end">
+            <Link href={`/shows/${show.id}/settle`}>
+              <Button variant="brand" size="lg">
+                <FileSpreadsheet className="h-4 w-4" />
+                {settlement ? "View settlement" : "Settle show"}
+              </Button>
+            </Link>
+            <Link href={`/shows/${show.id}/deal-builder`}>
+              <Button variant="secondary" size="default">
+                <Sparkles className="h-3.5 w-3.5" />
+                Open Deal Builder
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Key numbers strip */}
