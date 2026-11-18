@@ -70,7 +70,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex font-sans">
         <Sidebar />
-        <main className="flex-1 overflow-auto relative">{children}</main>
+        <main className="flex-1 min-w-0 overflow-auto relative">{children}</main>
         <CommandPaletteData />
       </body>
     </html>

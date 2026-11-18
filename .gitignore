@@ -43,6 +43,9 @@ next-env.d.ts
 # Deal Builder rationale snapshots (per-save artifacts; not source code)
 data/dealRationales/
 
+# Settlement records (record of the room; per-save artifacts)
+data/settlementRecords/
+
 # Case-study analysis artifacts (generated locally, not part of the prototype)
 venue_earnings_per_show.csv
 venue_earnings_per_show_excel.xlsx

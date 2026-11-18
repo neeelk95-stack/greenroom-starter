@@ -5,7 +5,7 @@ import { NavLinks } from "./nav-links";
 
 export function Sidebar() {
   return (
-    <aside className="w-[248px] shrink-0 border-r border-ink-200/60 bg-canvas-soft flex flex-col sticky top-0 h-screen overflow-y-auto z-10">
+    <aside className="hidden md:flex w-[248px] shrink-0 border-r border-ink-200/60 bg-canvas-soft flex-col sticky top-0 h-screen overflow-y-auto z-10">
       <div className="px-5 pt-6 pb-5">
         <Link href="/shows" className="flex items-center gap-2.5">
           <Logomark size={28} />

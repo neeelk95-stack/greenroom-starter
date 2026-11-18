@@ -14,6 +14,53 @@ You're looking at a working but mediocre product. It's enough to feel real, but 
 
 ---
 
+## Settlement: every deal type, with the math shown
+
+The Deal Builder captures the deal. Settlement is where it gets paid, and where
+trust breaks. The old in-app settlement tool (`lib/dealMath.ts`) handled only
+flat and %-of-gross deals; everything else fell back to a spreadsheet.
+`/shows/[id]/settle` now settles **all five deal types** with the new engine.
+
+### What it does
+
+| Capability | Where |
+|---|---|
+| Settles flat, %-of-gross, %-of-net, vs (net and gross basis) and door deals, including ratchets, walkouts, sellout/attendance/gross-threshold bonuses, comps that count toward gross, recoups and prior advances | `lib/settlementEngine.ts` |
+| Every line traces to its sources: ticket reports, each receipt, comps, recoups, the deal clause. Tap a line to see them | `components/settlement/SettlementWorksheet.tsx` |
+| **Terms that can be read two ways are never decided silently.** The engine returns both readings and what each pays (recoup inside vs on top of the cap, disputed recoups, door fees, ratchet scope, walkout amount, notes-vs-field percentage). The booker and tour manager pick one in the room | `settleWithDecisions()` |
+| Recoups already inside the receipts are not charged twice; expenses over the cap are shown as covered by the venue | engine |
+| Checks before signing: duplicate receipts, hospitality over the rider, comp notes that contradict their flag, notes that say a term changed, deal-type mismatch | `runChecks()` |
+| **Record of the room**: decisions, what was questioned, what was agreed, who signed. Saved as a snapshot in `data/settlementRecords/` | `lib/settlementRecordStore.ts` |
+| **Tour manager view**: phone-first, read-only, plain-English summary + every line with sources + what was agreed | `/shows/[id]/settle/share` |
+
+The math is deterministic on purpose: both sides must be able to reproduce it.
+The plain-English summary is a deterministic template today; the decision
+detection is rules-based. Both are shaped so a language model can later read
+the deal email and draft the summary, with the arithmetic staying in code.
+
+**Try this path:** open `/shows/show_coastal_spell_dispute/settle` (the WME
+marketing-recoup dispute). The engine shows that documented receipts were
+$1,600, so the $900 recoup plus receipts lands exactly on the $2,500 cap: both
+readings of the ambiguous clause pay **$12,285**, the amount that was finally
+agreed after a three-day email dispute. Pick how to treat the disputed recoup,
+add what was questioned and agreed, save, then open the **Tour manager view**.
+Door deals (e.g. `show_0018`) show the fees decision; `show_0014` has a ratchet.
+
+### Replay test against every past settlement
+
+```bash
+npm run replay   # writes data/replay-report.md
+```
+
+Runs all 498 past settled shows through the engine and compares with what was
+actually paid. Result: **82% match exactly as written; 18% differ and every one
+is explained by how the venue used to settle** (for example vs-gross deals
+settled on net, agreed recoups never charged, comps that should count toward
+gross left out), with the dollars attributed to each practice. One show needs
+human review. The old engine could settle 38% of these shows at all.
+
+---
+
 ## The slice: Deal Builder (this prototype)
 
 This fork ships a working prototype of a **Deal Builder** — a booking-time
@@ -45,7 +92,7 @@ The saved deal rationale lands in `data/dealRationales/` as a JSON snapshot
 
 | Rubric principle | Evidence in this fork |
 |---|---|
-| **1. Scope tightly. Defend the cut.** | New routes are only `/deal-builder` and `/deal-builder/preview`. The existing `/settle` worksheet is **untouched** — the slice is booking-time deal modeling, not settlement-time math. The PRD's BRs and non-goals are visible 1:1 in the code (search for `BR-01`…`BR-11` in `lib/`). |
+| **1. Scope tightly. Defend the cut.** | New routes are only `/deal-builder` and `/deal-builder/preview`. Settlement (`/settle`) was rebuilt afterwards on the same principles — see the section above. The PRD's BRs and non-goals are visible 1:1 in the code (search for `BR-01`…`BR-11` in `lib/`). |
 | **2. Take it deep.** | All **5 deal types** (`flat`, `vs`, `percentage_of_net`, `percentage_of_gross`, `door`) get type-specific recommendations. All **4 bonus structures** (`net_threshold`, `attendance_threshold`, `sellout`, `tier_ratchet`) net-trigger by construction. Repeat-vs-new-artist branches in the recommender. T-7 cancellation flag. Freetext-vs-structured reconciliation. Override+provenance loop end-to-end. |
 | **3. Show your reasoning.** | Every recommended term has a **"Why this?"** affordance showing source data + confidence. Overrides require a reason that propagates to the saved rationale. The agent-facing preview renders the *same* rationale block Mariana saw — same numbers, same provenance, both sides on one source of truth. |
 | **4. Design for humans, not screens.** | Single hero number (projected venue earnings, BR-02). Phone-first layout (sticky action bar, full-width modals on narrow). Form is **never empty** — recommendations pre-fill on load. Errors render above the field, not as toasts (UX-04). Provenance is one tap, not two. |
@@ -75,7 +122,6 @@ app/shows/[id]/deal-builder/
 - **Real PDF generation** — preview is HTML; visually equivalent for review.
 - **Live ticket-pull integration** — `projection.ts` uses a naive multiplier.
 - **Multi-venue** — single venue (The Crescent).
-- **Settlement-time changes** — `/settle` is untouched on purpose.
 
 See the case study memo for the full PRD: business requirements (BR-01..BR-11),
 functional requirements per persona (FR-M, FR-A, FR-G, FR-P, FR-X), trade-offs,
