@@ -14,6 +14,7 @@ import type { AddressInfo } from "node:net";
 import assert from "node:assert/strict";
 
 type Mode = { extractBadCitation: boolean };
+const nativeCalls: number[] = [];
 const mode: Mode = { extractBadCitation: false };
 
 const EMAIL_GOOD_EXTRACT = {
@@ -69,7 +70,15 @@ function startServer(kind: "openai" | "anthropic"): Promise<{ url: string; close
     req.on("end", () => {
       const j = JSON.parse(body || "{}");
       calls.push(1);
-      if (kind === "openai") {
+      if (kind === "openai" && req.url?.startsWith("/api/chat")) {
+        // Ollama's native API.
+        assert.equal(j.think, false, "native Ollama calls must turn thinking off");
+        const system = j.messages?.find((m: { role: string }) => m.role === "system")?.content ?? "";
+        const user = j.messages?.filter((m: { role: string }) => m.role === "user").map((m: { content: string }) => m.content).join("\n") ?? "";
+        nativeCalls.push(1);
+        res.setHeader("content-type", "application/json");
+        res.end(JSON.stringify({ message: { role: "assistant", content: reply(system, user) }, prompt_eval_count: 300, eval_count: 60, done: true }));
+      } else if (kind === "openai") {
         const system = j.messages?.find((m: { role: string }) => m.role === "system")?.content ?? "";
         const user = j.messages?.filter((m: { role: string }) => m.role === "user").map((m: { content: string }) => m.content).join("\n") ?? "";
         res.setHeader("content-type", "application/json");
@@ -193,6 +202,17 @@ async function main() {
     assert.equal(rd.model, "sonnet-5.5", "the reasoning step routes to Sonnet in private-hybrid");
     mode.extractBadCitation = false;
     delete process.env.ANTHROPIC_API_KEY;
+  });
+
+  await check("with LOCAL_API=ollama, Gemma is called through Ollama's own API with thinking off", async () => {
+    process.env.LOCAL_API = "ollama";
+    const before = nativeCalls.length;
+    const r = await runAgent("show_coastal_spell_dispute", email.text, email.from, email.fromFirstName, "local");
+    assert.ok(nativeCalls.length > before);
+    const ext = r.steps.find((s) => s.action === "extract_terms")!.model!;
+    assert.equal(ext.model, "gemma-local");
+    assert.equal(ext.totals.outputTokens, 60);
+    delete process.env.LOCAL_API;
   });
 
   console.log("\nPeople-only steps");

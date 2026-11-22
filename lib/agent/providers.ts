@@ -28,6 +28,14 @@ export type ModelReply = {
 
 const estimate = (s: string) => Math.ceil(s.length / 4);
 
+/** Talk to Ollama through its own API (LOCAL_API=ollama), or auto-detect its default port. */
+function useOllamaNative(): boolean {
+  const mode = (process.env.LOCAL_API ?? "auto").toLowerCase();
+  if (mode === "ollama") return true;
+  if (mode === "openai") return false;
+  return /:11434(\/|$)/.test(localBaseUrl());
+}
+
 async function postJson(url: string, headers: Record<string, string>, body: unknown, timeoutMs: number) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -81,36 +89,58 @@ export async function callModel(model: ModelKey, req: ModelRequest): Promise<Mod
     inputTokens = data.usage?.prompt_tokens;
     outputTokens = data.usage?.completion_tokens;
   } else if (spec.provider === "openai_compatible") {
+    const timeout = Number(process.env.LOCAL_TIMEOUT_MS ?? 180_000);
+    const think = process.env.LOCAL_THINK === "on";
     let data;
     try {
-      data = await postJson(
-        `${localBaseUrl()}/chat/completions`,
-        process.env.LOCAL_API_KEY ? { authorization: `Bearer ${process.env.LOCAL_API_KEY}` } : {},
-        {
-          model: spec.apiModel,
-          // Local models may spend tokens "thinking"; give them room.
-          max_tokens: req.maxTokens * 2,
-          temperature: 0.2,
-          stream: false,
-          // Ollama: ask Gemma 4 to skip its thinking mode unless LOCAL_THINK=on (faster; the tasks
-          // don't need it). Servers that don't know this field ignore it.
-          ...(process.env.LOCAL_THINK === "on" ? {} : { think: false }),
-          messages: [{ role: "system", content: req.system }, ...req.messages],
-        },
-        Number(process.env.LOCAL_TIMEOUT_MS ?? 180_000),
-      );
+      if (useOllamaNative()) {
+        // Ollama's own API: the only place `think: false` reliably turns off Gemma 4's thinking.
+        // With thinking on, each call spent its whole token budget thinking (slow, and the
+        // answer got cut off). `format: "json"` makes it reply with JSON only.
+        data = await postJson(
+          `${localBaseUrl().replace(/\/v1$/, "")}/api/chat`,
+          {},
+          {
+            model: spec.apiModel,
+            stream: false,
+            think,
+            keep_alive: process.env.LOCAL_KEEP_ALIVE ?? "30m",
+            ...(req.json ? { format: "json" } : {}),
+            options: { temperature: 0.2, num_predict: req.maxTokens * (think ? 4 : 1) },
+            messages: [{ role: "system", content: req.system }, ...req.messages],
+          },
+          timeout,
+        );
+        text = data.message?.content ?? "";
+        inputTokens = data.prompt_eval_count;
+        outputTokens = data.eval_count;
+      } else {
+        // Any other OpenAI-compatible server (LM Studio, llama.cpp, vLLM).
+        data = await postJson(
+          `${localBaseUrl()}/chat/completions`,
+          process.env.LOCAL_API_KEY ? { authorization: `Bearer ${process.env.LOCAL_API_KEY}` } : {},
+          {
+            model: spec.apiModel,
+            max_tokens: req.maxTokens * (think ? 4 : 1),
+            temperature: 0.2,
+            stream: false,
+            messages: [{ role: "system", content: req.system }, ...req.messages],
+          },
+          timeout,
+        );
+        text = data.choices?.[0]?.message?.content ?? "";
+        inputTokens = data.usage?.prompt_tokens;
+        outputTokens = data.usage?.completion_tokens;
+      }
     } catch (err) {
       const msg = String((err as Error)?.message ?? err);
       if (/ECONNREFUSED|fetch failed|ENOTFOUND|EHOSTUNREACH/i.test(msg) || (err as { cause?: { code?: string } })?.cause?.code === "ECONNREFUSED") {
         markLocalDown();
         throw new Error(`Local model not reachable at ${localBaseUrl()}. Start Ollama or LM Studio.`);
       }
+      if ((err as Error)?.name === "AbortError") throw new Error(`Local model took longer than ${Math.round(timeout / 1000)} s`);
       throw err;
     }
-    const msg = data.choices?.[0]?.message ?? {};
-    text = msg.content || msg.reasoning_content || msg.reasoning || "";
-    inputTokens = data.usage?.prompt_tokens;
-    outputTokens = data.usage?.completion_tokens;
   } else {
     throw new Error(`callModel can't call the "${model}" provider`);
   }

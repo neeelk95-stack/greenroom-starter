@@ -124,6 +124,10 @@ export async function runTask<I, O>(
       else attempts.push({ model, status: "error", reason: (err as Error).message, inputTokens: 0, outputTokens: 0, latencyMs: 0, costUsd: 0 });
       continue;
     }
+    if (!opts.onlyModel && def.isUnusable?.(result.output) && model !== "rules") {
+      attempts.push({ ...result.log, status: "invalid", reason: "Output was empty or cut off; trying the next model" });
+      continue;
+    }
     attempts.push(result.log);
     let used = model;
     let escalated = false;

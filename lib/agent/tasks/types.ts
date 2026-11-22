@@ -13,6 +13,8 @@ export type TaskDef<I, O> = {
   parse(json: unknown, input: I): O;
   /** Problems code can verify (e.g. a citation that isn't in the email). Non-empty → escalate if the route allows. */
   check(output: O, input: I): string[];
+  /** Output too empty to use at all (e.g. no deal terms). The gateway moves down the chain. */
+  isUnusable?(output: O): boolean;
   rules(input: I): O;
 };
 

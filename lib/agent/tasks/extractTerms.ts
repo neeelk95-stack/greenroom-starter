@@ -93,6 +93,7 @@ export const extractTerms: TaskDef<ExtractInput, DealTerms> = {
     };
   },
   check: (t, { email }) => checkTerms(t, email),
+  isUnusable: (t) => t.dealType == null && t.guaranteeAmount == null && t.percentage == null && t.expenseCap == null,
   rules: ({ email }) => rulesExtract(email),
 };
 
