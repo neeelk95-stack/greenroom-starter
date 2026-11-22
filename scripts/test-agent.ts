@@ -149,7 +149,26 @@ async function main() {
   const email = sampleOfferEmail(ctx!.data);
 
   console.log("\nGateway with a mock local model (stands in for Gemma 4 12B)");
-  const run = await runAgent("show_coastal_spell_dispute", email.text, email.from, email.fromFirstName, "local");
+  const events: import("../lib/agent/agent").AgentEvent[] = [];
+  const run = await runAgent("show_coastal_spell_dispute", email.text, email.from, email.fromFirstName, "local", (e) => events.push(e));
+  await check("live progress: the plan, then each step starts and finishes in order, with its model calls", () => {
+    assert.equal(events[0].type, "plan");
+    const plan = events[0].type === "plan" ? events[0].steps.map((s) => s.action) : [];
+    assert.deepEqual(plan, run.steps.map((s) => s.action));
+    const order = events.filter((e) => e.type === "step_start" || e.type === "step_done").map((e) => `${e.type}:${e.type === "step_done" ? e.step.action : e.type === "step_start" ? e.action : ""}`);
+    assert.deepEqual(order, plan.flatMap((a) => [`step_start:${a}`, `step_done:${a}`]));
+    const calls = events.filter((e) => e.type === "call");
+    const starts = calls.filter((e) => e.type === "call" && e.event.phase === "start");
+    const ends = calls.filter((e) => e.type === "call" && e.event.phase === "end");
+    assert.ok(starts.length >= 4 && ends.length >= starts.length, `${starts.length} starts, ${ends.length} ends`);
+    assert.ok(calls.every((e) => e.type === "call" && e.action !== "commit_terms" && e.action !== "compute_settlement" && e.action !== "release_payout"), "engine and people steps make no model calls");
+  });
+  await check("a listener that throws can't break a run", async () => {
+    const r = await runAgent("show_coastal_spell_dispute", email.text, email.from, email.fromFirstName, "rules", () => {
+      throw new Error("listener bug");
+    });
+    assert.equal(r.steps.length, 8);
+  });
   await check("every model step ran on the local model", () => {
     for (const s of run.steps.filter((s) => s.model)) assert.equal(s.model!.model, "gemma-local", s.label);
   });

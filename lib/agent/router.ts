@@ -100,25 +100,55 @@ async function execute<I, O>(def: TaskDef<I, O>, model: ModelKey, input: I): Pro
   return { output, problems, log };
 }
 
+/**
+ * Live events from the gateway, for showing a run as it happens: which model
+ * is working now, and how each call ended (including skips, escalations and
+ * fallbacks). Purely observational; nothing here changes routing.
+ */
+export type CallEvent =
+  | { phase: "start"; model: ModelKey; why: "primary" | "fallback" | "escalation" }
+  | { phase: "end"; log: CallLog; problems?: string[] }
+  | { phase: "skip"; model: ModelKey; reason?: string };
+
 export async function runTask<I, O>(
   def: TaskDef<I, O>,
   input: I,
-  opts: { profile: ProfileName; onlyModel?: ModelKey },
+  opts: { profile: ProfileName; onlyModel?: ModelKey; onCall?: (e: CallEvent) => void },
 ): Promise<TaskRun<O>> {
   const route = resolveRoute(def.name, opts.profile);
   const chain = Array.from(new Set(opts.onlyModel ? [opts.onlyModel] : [route.primary, ...route.fallbacks]));
   if (!opts.onlyModel && !chain.includes("rules")) chain.push("rules");
   const attempts: CallLog[] = [];
+  const notify = (e: CallEvent) => {
+    try {
+      opts.onCall?.(e);
+    } catch {
+      // A broken listener must never break a run.
+    }
+  };
+  const exec = async (model: ModelKey, why: "primary" | "fallback" | "escalation"): Promise<Exec<O>> => {
+    notify({ phase: "start", model, why });
+    try {
+      const r = await execute(def, model, input);
+      notify({ phase: "end", log: r.log, problems: r.problems });
+      return r;
+    } catch (err) {
+      const logs = err instanceof TaskFailed ? err.attempts : [{ model, status: "error" as const, reason: (err as Error).message, inputTokens: 0, outputTokens: 0, latencyMs: 0, costUsd: 0 }];
+      logs.forEach((log) => notify({ phase: "end", log }));
+      throw err;
+    }
+  };
 
   for (const model of chain) {
     const av = availability(model);
     if (!av.ok) {
       attempts.push({ model, status: "skipped", reason: av.reason, inputTokens: 0, outputTokens: 0, latencyMs: 0, costUsd: 0 });
+      notify({ phase: "skip", model, reason: av.reason });
       continue;
     }
     let result: Exec<O>;
     try {
-      result = await execute(def, model, input);
+      result = await exec(model, model === chain[0] ? "primary" : "fallback");
     } catch (err) {
       if (err instanceof TaskFailed) attempts.push(...err.attempts);
       else attempts.push({ model, status: "error", reason: (err as Error).message, inputTokens: 0, outputTokens: 0, latencyMs: 0, costUsd: 0 });
@@ -126,6 +156,7 @@ export async function runTask<I, O>(
     }
     if (!opts.onlyModel && def.isUnusable?.(result.output) && model !== "rules") {
       attempts.push({ ...result.log, status: "invalid", reason: "Output was empty or cut off; trying the next model" });
+      notify({ phase: "end", log: attempts[attempts.length - 1] });
       continue;
     }
     attempts.push(result.log);
@@ -135,7 +166,7 @@ export async function runTask<I, O>(
     const esc = route.escalate;
     if (result.problems.length && !opts.onlyModel && esc && model === route.primary && esc !== model && availability(esc).ok) {
       try {
-        const e = await execute(def, esc, input);
+        const e = await exec(esc, "escalation");
         attempts.push(e.log);
         if (e.problems.length <= result.problems.length) {
           result = e;

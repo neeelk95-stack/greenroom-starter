@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Laptop, Cloud, ScrollText } from "lucide-react";
 import { AGENT_NAME, BackstageLabel, BackstageMark, backstageButtonClass } from "@/components/agent/Backstage";
+import { LiveRun, applyEvent, type LiveState, type ModelLabels } from "@/components/agent/LiveRun";
+import type { AgentEvent } from "@/lib/agent/agent";
 import { cn } from "@/lib/utils";
-import { runAgentAction } from "@/app/shows/[id]/agent/actions";
 
 export type ProfileOption = { key: string; label: string; description: string; ready: boolean; note: string; local: boolean };
 
@@ -14,26 +15,64 @@ export function RunPanel({
   email,
   profiles,
   initialProfile,
+  modelLabels,
 }: {
   showId: string;
   email: { text: string; from: string; fromFirstName: string; source: string };
   profiles: ProfileOption[];
   initialProfile: string;
+  modelLabels: ModelLabels;
 }) {
   const router = useRouter();
   const [text, setText] = useState(email.text);
   const [profile, setProfile] = useState(initialProfile);
   const [error, setError] = useState<string | null>(null);
-  const [pending, start] = useTransition();
+  const [pending, setPending] = useState(false);
+  const [live, setLive] = useState<LiveState | null>(null);
   const chosen = profiles.find((p) => p.key === profile);
+  const currentStep = live?.steps.find((s) => s.state === "running");
 
-  const run = () => {
+  // Streams the run: each line from the server is one event (a step starting,
+  // a model call, a step finishing), applied to the live view as it arrives.
+  const run = async () => {
     setError(null);
-    start(async () => {
-      const r = await runAgentAction({ showId, email: text, from: email.from, firstName: email.fromFirstName, profile });
-      if (!r.ok) setError(r.error);
+    setPending(true);
+    setLive({ profileLabel: chosen?.label ?? profile, steps: [], startedAt: Date.now() });
+    try {
+      const res = await fetch(`/shows/${showId}/agent/run`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email: text, from: email.from, firstName: email.fromFirstName, profile }),
+      });
+      if (!res.ok || !res.body) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j.error ?? `HTTP ${res.status}`);
+      }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        let nl: number;
+        while ((nl = buf.indexOf("\n")) >= 0) {
+          const line = buf.slice(0, nl).trim();
+          buf = buf.slice(nl + 1);
+          if (!line) continue;
+          const ev = JSON.parse(line) as AgentEvent;
+          setLive((s) => (s ? applyEvent(s, ev) : s));
+          if (ev.type === "error") setError(ev.message);
+        }
+      }
+    } catch (e) {
+      const message = (e as Error).message;
+      setError(message);
+      setLive((s) => (s ? { ...s, endedAt: Date.now(), error: s.error ?? message } : s));
+    } finally {
+      setPending(false);
       router.refresh();
-    });
+    }
   };
 
   return (
@@ -81,16 +120,16 @@ export function RunPanel({
           <BackstageMark working={pending} />
           <BackstageLabel
             title={pending ? `${AGENT_NAME} is working…` : `Send to ${AGENT_NAME}`}
-            subtitle={pending ? (chosen?.label ?? "") : "Reads the email, checks the terms, preps the settlement"}
+            subtitle={pending ? (currentStep?.label ?? chosen?.label ?? "") : "Reads the email, checks the terms, preps the settlement"}
           />
         </button>
-        {pending && (
-          <span className="text-[12px] text-ink-500">
-            {chosen?.local ? "On a laptop, a local model takes a couple of minutes for all the steps." : "Usually a few seconds."}
-          </span>
+        {pending && chosen?.local && (
+          <span className="text-[12px] text-ink-500">On a laptop, a local model takes a couple of minutes for all the steps.</span>
         )}
-        {error && <span className="text-[12px] text-rose-700">{error}</span>}
+        {error && !live && <span className="text-[12px] text-rose-700">{error}</span>}
       </div>
+
+      {live && <LiveRun state={live} labels={modelLabels} />}
     </div>
   );
 }

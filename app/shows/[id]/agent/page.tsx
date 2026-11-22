@@ -8,7 +8,7 @@ import { getShow } from "@/lib/agent/tools";
 import { sampleOfferEmail } from "@/lib/agent/offerEmails";
 import { getLatestRun } from "@/lib/agent/runStore";
 import { PROFILES, defaultProfile, type ProfileName } from "@/lib/agent/routing";
-import { MODELS, availability, checkLocalModel, type ModelKey } from "@/lib/agent/models";
+import { MODELS, MODEL_KEYS, availability, checkLocalModel, type ModelKey } from "@/lib/agent/models";
 import type { AgentStep, AgentRun } from "@/lib/agent/agent";
 import type { Autonomy } from "@/lib/agent/policy";
 import { formatShowDateFull } from "@/lib/format";
@@ -118,7 +118,13 @@ export default async function AgentPage({ params }: { params: Promise<{ id: stri
 
       <Card className="mb-6">
         <CardContent className="pt-6">
-          <RunPanel showId={id} email={email} profiles={profiles} initialProfile={run?.profile ?? defaultProfile()} />
+          <RunPanel
+            showId={id}
+            email={email}
+            profiles={profiles}
+            initialProfile={run?.profile ?? defaultProfile()}
+            modelLabels={Object.fromEntries(MODEL_KEYS.map((k) => [k, { label: MODELS[k].label, local: MODELS[k].local }]))}
+          />
         </CardContent>
       </Card>
 

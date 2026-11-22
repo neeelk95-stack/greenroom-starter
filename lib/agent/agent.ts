@@ -12,7 +12,7 @@
 
 import { format, parseISO } from "date-fns";
 import { AUTONOMY_LABEL, autonomyOf, commitGate, type AgentAction, type Autonomy } from "./policy";
-import { runTask, type CallLog, type TaskRun } from "./router";
+import { runTask, type CallEvent, type CallLog, type TaskRun } from "./router";
 import type { ProfileName } from "./routing";
 import type { ModelKey } from "./models";
 import { classifyEmail, type ClassifyOutput } from "./tasks/classifyEmail";
@@ -101,6 +101,27 @@ export type AgentRun = {
   totals: { inputTokens: number; outputTokens: number; latencyMs: number; costUsd: number; modelCalls: number };
 };
 
+/** The steps every run walks through, in order. The UI shows them all from the start. */
+export const PLAN: { action: AgentAction; label: string }[] = [
+  { action: "read_email", label: "Read and sort the email" },
+  { action: "extract_terms", label: "Extract the deal terms" },
+  { action: "flag_two_readings", label: "Flag terms with two readings" },
+  { action: "commit_terms", label: "Commit terms to the deal record" },
+  { action: "message_agent", label: "Ask Drake to clarify" },
+  { action: "compute_settlement", label: "Calculate the settlement" },
+  { action: "prepare_packet", label: "Prepare the packet and Drake's summary" },
+  { action: "release_payout", label: "Approve the settlement and release the payout" },
+];
+
+/** Live progress, streamed to the page while a run is in flight. */
+export type AgentEvent =
+  | { type: "plan"; profile: ProfileName; steps: { action: AgentAction; label: string; autonomy: Autonomy; autonomyLabel: string }[] }
+  | { type: "step_start"; action: AgentAction; label: string; at: number }
+  | { type: "call"; action: AgentAction; event: CallEvent; at: number }
+  | { type: "step_done"; step: AgentStep; at: number }
+  | { type: "done"; runId: string; totals: AgentRun["totals"]; at: number }
+  | { type: "error"; message: string; at: number };
+
 const money = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
 
 function modelUse<O>(r: TaskRun<O>): ModelUse {
@@ -157,20 +178,52 @@ function same(a: string | number | null, b: string | number | null): boolean {
   return String(a) === String(b);
 }
 
-export async function runAgent(showId: string, emailText: string, emailFrom: string, agentFirstName: string, profile: ProfileName): Promise<AgentRun> {
+export async function runAgent(
+  showId: string,
+  emailText: string,
+  emailFrom: string,
+  agentFirstName: string,
+  profile: ProfileName,
+  onEvent?: (e: AgentEvent) => void,
+): Promise<AgentRun> {
   const ctx = await getShow(showId);
   if (!ctx) throw new Error(`Show ${showId} has no deal`);
   const { data, input } = ctx;
   const artistName = data.artist?.name ?? "the artist";
   const showDate = format(parseISO(data.show.date), "MMMM d, yyyy");
   const steps: AgentStep[] = [];
-  const opts = { profile };
+
+  // Live progress: purely observational, so a listener can never change a run.
+  const emit = (e: AgentEvent) => {
+    try {
+      onEvent?.(e);
+    } catch {
+      // ignore
+    }
+  };
+  emit({
+    type: "plan",
+    profile,
+    steps: PLAN.map((p) => ({ ...p, autonomy: autonomyOf(p.action), autonomyLabel: AUTONOMY_LABEL[autonomyOf(p.action)] })),
+  });
+  let current: AgentAction = "read_email";
+  const begin = (action: AgentAction) => {
+    current = action;
+    emit({ type: "step_start", action, label: PLAN.find((p) => p.action === action)?.label ?? action, at: Date.now() });
+  };
+  const record = (s: AgentStep) => {
+    steps.push(s);
+    emit({ type: "step_done", step: s, at: Date.now() });
+  };
+  const opts = { profile, onCall: (event: CallEvent) => emit({ type: "call", action: current, event, at: Date.now() }) };
 
   // 1. Read and sort the email.
+  begin("read_email");
   const cls = await runTask(classifyEmail, { email: emailText }, opts);
-  steps.push(step("read_email", "Read and sort the email", "done", `Sorted as "${cls.output.kind}": ${cls.output.reason}`, modelUse(cls)));
+  record(step("read_email", "Read and sort the email", "done", `Sorted as "${cls.output.kind}": ${cls.output.reason}`, modelUse(cls)));
 
   // 2. Extract the terms, each with a citation that code verifies.
+  begin("extract_terms");
   const ext = await runTask(extractTerms, { email: emailText }, opts);
   const terms = ext.output;
   const termChecks: TermCheck[] = (["dealType", "guaranteeAmount", "percentage", "percentageBasis", "expenseCap", "hospitalityCap"] as CitedField[]).map((field) => {
@@ -189,7 +242,7 @@ export async function runAgent(showId: string, emailText: string, emailFrom: str
   });
   const verifiedCount = termChecks.filter((t) => t.value != null && t.verified).length;
   const filled = termChecks.filter((t) => t.value != null).length;
-  steps.push(
+  record(
     step(
       "extract_terms",
       "Extract the deal terms",
@@ -201,6 +254,7 @@ export async function runAgent(showId: string, emailText: string, emailFrom: str
 
   // 3. Flag terms with two readings. Code checks every flag (lib/agent/tasks/flagChecks.ts);
   //    the engine prices each one it can, and flags that move money come first.
+  begin("flag_two_readings");
   const rd = await runTask(findTwoReadings, { email: emailText }, opts);
   const impact = (f: PricedFlag) => Math.max(f.price?.actual.impact ?? 0, f.price?.atCap?.impact ?? 0);
   const kept: PricedFlag[] = rd.output.flags
@@ -220,7 +274,7 @@ export async function runAgent(showId: string, emailText: string, emailFrom: str
   const dropNote = dropped
     ? ` ${dropped} dropped by the checks (${[...new Set(droppedDetails.map((d) => d.detail))].join("; ")}).`
     : "";
-  steps.push(
+  record(
     step(
       "flag_two_readings",
       "Flag terms with two readings",
@@ -233,11 +287,12 @@ export async function runAgent(showId: string, emailText: string, emailFrom: str
   );
 
   // 4. Commit gate.
+  begin("commit_terms");
   const mismatches = termChecks
     .filter((t) => MONEY_FIELDS.includes(t.field) && t.value != null && t.recordValue != null && !t.matchesRecord)
     .map((t) => `${t.field} (email ${t.value}, record ${t.recordValue})`);
   const gate = commitGate({ extractionProblems: ext.problems, blockingFlags: kept.length, recordMismatches: mismatches });
-  steps.push(
+  record(
     step(
       "commit_terms",
       "Commit terms to the deal record",
@@ -247,6 +302,7 @@ export async function runAgent(showId: string, emailText: string, emailFrom: str
   );
 
   // 5. Draft a question to the agent (never sent by the agent).
+  begin("message_agent");
   const full = computeSettlement(input);
   const allowed = allowedNumbers(full, input, emailText);
   let draft: Draft | null = null;
@@ -265,13 +321,14 @@ export async function runAgent(showId: string, emailText: string, emailFrom: str
       opts,
     );
     draft = dr.problems.length ? draftMessage.rules({ artistName, showDate, agentFirstName, bookerName: "Ethan", venueName: data.venue?.name ?? "The Crescent", flags: kept, allowedNumbers: allowed }) : dr.output;
-    steps.push(step("message_agent", "Ask Drake to clarify", "draft_ready", `Draft ready for Ethan to send.${dr.problems.length ? " The model's draft failed the number check, so the template was used." : ""}`, modelUse(dr)));
+    record(step("message_agent", "Ask Drake to clarify", "draft_ready", `Draft ready for Ethan to send.${dr.problems.length ? " The model's draft failed the number check, so the template was used." : ""}`, modelUse(dr)));
   } else {
-    steps.push(step("message_agent", "Ask Drake to clarify", "skipped", "Nothing to clarify."));
+    record(step("message_agent", "Ask Drake to clarify", "skipped", "Nothing to clarify."));
   }
 
   // 6. Calculate: deterministic engine, called as a tool.
-  steps.push(
+  begin("compute_settlement");
+  record(
     step(
       "compute_settlement",
       "Calculate the settlement",
@@ -281,6 +338,7 @@ export async function runAgent(showId: string, emailText: string, emailFrom: str
   );
 
   // 7. Packet and summary, with every number checked against the engine.
+  begin("prepare_packet");
   const lines = full.lines.filter((l) => l.kind !== "info").map((l) => ({ label: l.label, amount: l.amount }));
   const sm = await runTask(
     writeSummary,
@@ -288,7 +346,7 @@ export async function runAgent(showId: string, emailText: string, emailFrom: str
     opts,
   );
   const summaryGrounded = sm.problems.length === 0;
-  steps.push(
+  record(
     step(
       "prepare_packet",
       "Prepare the packet and Drake's summary",
@@ -299,7 +357,8 @@ export async function runAgent(showId: string, emailText: string, emailFrom: str
   );
 
   // 8. People only.
-  steps.push(step("release_payout", "Approve the settlement and release the payout", "locked", "Locked until Ethan approves and Drake accepts. Backstage has no tool for this."));
+  begin("release_payout");
+  record(step("release_payout", "Approve the settlement and release the payout", "locked", "Locked until Ethan approves and Drake accepts. Backstage has no tool for this."));
 
   const modelSteps = [cls, ext, rd, sm];
   const totals = modelSteps.reduce(

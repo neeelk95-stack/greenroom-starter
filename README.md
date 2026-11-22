@@ -70,6 +70,7 @@ eval scorecard.
 
 | | |
 |---|---|
+| **Live progress** | Press **Send to Backstage** and watch each step as it happens: which step is running, which model is working on it (and any escalation or fallback), how long each call took and what it cost, and where Backstage stops for a person. The page streams the run from `app/shows/[id]/agent/run/route.ts`; `npm run agent` prints the same progress in the terminal |
 | **What it does alone** | Reads and sorts the email, extracts the deal terms (every money term must quote the email, and code checks the quote), flags terms that can be read two ways, calculates the settlement with the engine, prepares the packet and Drake's summary (every number checked against the engine), answers questions at the table |
 | **What it asks about** | Commits terms only if every check passes; otherwise Ethan confirms. Messages to Drake (the artist's side) are drafts; Ethan sends them |
 | **What it can't do** | Approve a settlement, release a payout or send email. Those tools don't exist on the agent's side (`lib/agent/tools.ts`), so no prompt can make it move money |

@@ -31,7 +31,16 @@ async function main() {
   console.log(`\nBackstage (Deal Ledger agent) · ${ctx.data.artist?.name} · profile: ${profile}\n`);
   console.log(email.text.split("\n").map((l) => `  │ ${l}`).join("\n"), "\n");
 
-  const run = await runAgent(showId, email.text, email.from, email.fromFirstName, profile);
+  // Live progress as it happens, then the full step list.
+  const t0 = Date.now();
+  const at = (t: number) => `${((t - t0) / 1000).toFixed(1).padStart(5)} s`;
+  const run = await runAgent(showId, email.text, email.from, email.fromFirstName, profile, (e) => {
+    if (e.type === "step_start") console.log(`${at(e.at)}  → ${e.label}`);
+    if (e.type === "call" && e.event.phase === "start") console.log(`${at(e.at)}      ${MODELS[e.event.model].label}${e.event.why === "primary" ? "" : ` (${e.event.why})`} working…`);
+    if (e.type === "call" && e.event.phase === "end") console.log(`${at(e.at)}      ${MODELS[e.event.log.model].label}: ${e.event.log.status} in ${(e.event.log.latencyMs / 1000).toFixed(1)} s`);
+    if (e.type === "call" && e.event.phase === "skip") console.log(`${at(e.at)}      ${MODELS[e.event.model].label}: skipped${e.event.reason ? ` (${e.event.reason})` : ""}`);
+  });
+  console.log(`\nDone in ${((Date.now() - t0) / 1000).toFixed(1)} s.\n`);
   for (const s of run.steps) {
     const m = s.model;
     const modelInfo = m
