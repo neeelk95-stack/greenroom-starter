@@ -92,8 +92,9 @@ export async function callModel(model: ModelKey, req: ModelRequest): Promise<Mod
           max_tokens: req.maxTokens * 2,
           temperature: 0.2,
           stream: false,
-          // Ollama: turn Gemma 4's thinking mode off unless asked (faster; the tasks don't need it).
-          ...(process.env.LOCAL_THINK === "on" ? {} : { think: false, reasoning_effort: "none" }),
+          // Ollama: ask Gemma 4 to skip its thinking mode unless LOCAL_THINK=on (faster; the tasks
+          // don't need it). Servers that don't know this field ignore it.
+          ...(process.env.LOCAL_THINK === "on" ? {} : { think: false }),
           messages: [{ role: "system", content: req.system }, ...req.messages],
         },
         Number(process.env.LOCAL_TIMEOUT_MS ?? 180_000),
