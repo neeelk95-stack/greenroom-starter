@@ -29,7 +29,7 @@ export type ModelReply = {
 const estimate = (s: string) => Math.ceil(s.length / 4);
 
 /** Talk to Ollama through its own API (LOCAL_API=ollama), or auto-detect its default port. */
-function useOllamaNative(): boolean {
+function isOllamaNative(): boolean {
   const mode = (process.env.LOCAL_API ?? "auto").toLowerCase();
   if (mode === "ollama") return true;
   if (mode === "openai") return false;
@@ -93,7 +93,7 @@ export async function callModel(model: ModelKey, req: ModelRequest): Promise<Mod
     const think = process.env.LOCAL_THINK === "on";
     let data;
     try {
-      if (useOllamaNative()) {
+      if (isOllamaNative()) {
         // Ollama's own API: the only place `think: false` reliably turns off Gemma 4's thinking.
         // With thinking on, each call spent its whole token budget thinking (slow, and the
         // answer got cut off). `format: "json"` makes it reply with JSON only.
