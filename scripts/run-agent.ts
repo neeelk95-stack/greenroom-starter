@@ -56,8 +56,8 @@ async function main() {
       }
     }
   }
-  if (run.draft) console.log(`\nDraft to the agent (not sent):\n  Subject: ${run.draft.subject}\n${run.draft.body.split("\n").map((l) => `  ${l}`).join("\n")}`);
-  console.log(`\nSummary for the tour manager${run.settlement.summaryGrounded ? " (numbers checked)" : " (engine template)"}:\n  ${run.settlement.summary}`);
+  if (run.draft) console.log(`\nDraft to Drake (not sent):\n  Subject: ${run.draft.subject}\n${run.draft.body.split("\n").map((l) => `  ${l}`).join("\n")}`);
+  console.log(`\nSummary for Drake${run.settlement.summaryGrounded ? " (numbers checked)" : " (engine template)"}:\n  ${run.settlement.summary}`);
   console.log(`\nTotals: ${run.totals.modelCalls} model calls · ${run.totals.inputTokens}/${run.totals.outputTokens} tokens · ${(run.totals.latencyMs / 1000).toFixed(1)} s · $${run.totals.costUsd.toFixed(4)}`);
 
   const q = arg("ask");

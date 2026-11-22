@@ -27,7 +27,7 @@ export const TASKS: { name: TaskName; label: string; why: string }[] = [
   { name: "extract_terms", label: "Extract deal terms", why: "Copy-and-structure work with a citation per field. Escalate when a citation fails." },
   { name: "find_two_readings", label: "Find terms with two readings", why: "The reasoning step. A miss becomes a dispute, so it gets the strongest model the data rules allow." },
   { name: "draft_message", label: "Draft a question to the agent", why: "Short writing from known facts. Draft only; a person sends it." },
-  { name: "write_summary", label: "Plain-English summary for the tour manager", why: "Every number is checked against the engine before it's shown." },
+  { name: "write_summary", label: "Plain-English summary for Drake", why: "Every number is checked against the engine before it's shown." },
   { name: "answer_question", label: "Answer questions at the table", why: "People are waiting, so it needs a fast model. What-ifs are computed by the engine." },
 ];
 

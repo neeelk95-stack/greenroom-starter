@@ -185,7 +185,7 @@ export function SettlementWorksheet({
             <CardTitle className="flex items-center gap-1.5">
               <FileText className="h-3.5 w-3.5 text-ink-500" /> In plain English
             </CardTitle>
-            <CardDescription>What the tour manager sees first.</CardDescription>
+            <CardDescription>What Drake sees first.</CardDescription>
           </div>
         </CardHeader>
         <CardContent>
@@ -309,7 +309,7 @@ export function SettlementWorksheet({
             />
           </label>
           <label className="block">
-            <span className="text-[11.5px] font-medium text-ink-600">Signed off by (tour manager)</span>
+            <span className="text-[11.5px] font-medium text-ink-600">Signed off by (Drake, tour manager)</span>
             <input
               value={signedBy}
               onChange={(e) => setSignedBy(e.target.value)}
@@ -331,12 +331,12 @@ export function SettlementWorksheet({
               href={`/shows/${showId}/settle/share`}
               className="inline-flex items-center justify-center gap-1.5 rounded-md ring-1 ring-ink-200 hover:ring-ink-300 bg-white text-ink-900 text-[13px] font-medium px-4 py-2.5"
             >
-              <Send className="h-3.5 w-3.5" /> Tour manager view
+              <Send className="h-3.5 w-3.5" /> Drake&apos;s view
             </Link>
           </div>
           {savedAt && (
             <div className="text-[11px] text-ink-400">
-              Last saved {new Date(savedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}. The tour manager view shows the saved version.
+              Last saved {new Date(savedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}. Drake&apos;s view shows the saved version.
             </div>
           )}
         </CardContent>

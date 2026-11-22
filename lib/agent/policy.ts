@@ -27,13 +27,13 @@ export const AUTONOMY: { action: AgentAction; label: string; level: Autonomy; un
   { action: "read_email", label: "Read and sort the offer email", level: "auto", undoable: true, outside: false, why: "Internal and undoable." },
   { action: "extract_terms", label: "Extract the deal terms", level: "auto", undoable: true, outside: false, why: "A draft; every money field must cite the email." },
   { action: "flag_two_readings", label: "Flag terms with two readings", level: "auto", undoable: true, outside: false, why: "Flags are priced by the engine, not the model." },
-  { action: "commit_terms", label: "Commit terms to the deal record", level: "auto_if_checks_pass", undoable: true, outside: false, why: "Alone only if every citation verifies, nothing is ambiguous, and the email matches the record. Otherwise the booker confirms." },
-  { action: "message_agent", label: "Ask the artist's agent to clarify", level: "draft_only", undoable: false, outside: true, why: "It leaves the building, so the booker sends it." },
+  { action: "commit_terms", label: "Commit terms to the deal record", level: "auto_if_checks_pass", undoable: true, outside: false, why: "Alone only if every citation verifies, nothing is ambiguous, and the email matches the record. Otherwise Ethan confirms." },
+  { action: "message_agent", label: "Ask Drake to clarify", level: "draft_only", undoable: false, outside: true, why: "It leaves the building, so Ethan sends it." },
   { action: "compute_settlement", label: "Calculate the settlement", level: "auto", undoable: true, outside: false, why: "Deterministic engine. No model does arithmetic." },
-  { action: "prepare_packet", label: "Prepare the packet and tour manager summary", level: "auto", undoable: true, outside: true, why: "Every number in the summary is checked against the engine first." },
+  { action: "prepare_packet", label: "Prepare the packet and Drake's summary", level: "auto", undoable: true, outside: true, why: "Every number in the summary is checked against the engine first." },
   { action: "answer_questions", label: "Answer questions at the table", level: "auto", undoable: true, outside: true, why: "Read-only. What-ifs are computed by the engine." },
   { action: "decide_reading", label: "Decide a term with two readings", level: "people_decide", undoable: true, outside: true, why: "Both sides choose; the agent shows what each reading pays." },
-  { action: "release_payout", label: "Approve the settlement and release the payout", level: "people_only", undoable: false, outside: true, why: "Money moves. Booker approves, tour manager accepts; then a rule releases it. The agent has no tool for this." },
+  { action: "release_payout", label: "Approve the settlement and release the payout", level: "people_only", undoable: false, outside: true, why: "Money moves. Ethan approves, Drake accepts; then a rule releases it. The agent has no tool for this." },
 ];
 
 export const AUTONOMY_LABEL: Record<Autonomy, string> = {

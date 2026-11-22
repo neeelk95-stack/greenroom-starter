@@ -1,6 +1,6 @@
 # Agent eval scorecard
 
-Generated 2026-11-22T00:54:03.338Z. 50 extraction cases (half real deal notes, half paraphrased), 29 two-readings cases, 24 disputed settlements (9 involve a clause the engine or text can verify).
+Generated 2026-11-22T01:09:08.663Z. 50 extraction cases (half real deal notes, half paraphrased), 29 two-readings cases, 24 disputed settlements (9 involve a clause the engine or text can verify).
 
 | Model | Field accuracy | Citations verified | Two-readings recall | False flags on clear emails | Disputed: recall | p50 / p95 latency (extract) | Cost per 100 extractions |
 |---|---|---|---|---|---|---|---|

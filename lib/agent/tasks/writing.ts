@@ -21,7 +21,7 @@ export const draftMessage: TaskDef<DraftInput, Draft> = {
   maxTokens: 500,
   prompt: (i) => ({
     system:
-      "You draft short, friendly emails from a music venue's booker to an artist's agent. Use only the facts given. " +
+      "You draft short, friendly emails from a music venue's booker to the artist's tour manager or agent. Use only the facts given. " +
       "Never add numbers that aren't in the facts. Reply with JSON only.",
     user: `Facts:\n- Artist: ${i.artistName}\n- Show date: ${i.showDate}\n- Agent's first name: ${i.agentFirstName}\n- Booker: ${i.bookerName}, ${i.venueName}\n- Terms to confirm:\n${i.flags
       .map((f) => `  - "${f.quote}": ${f.question} (${f.readingA} or ${f.readingB}?)`)
@@ -62,7 +62,7 @@ export const writeSummary: TaskDef<SummaryInput, Summary> = {
   maxTokens: 500,
   prompt: (i) => ({
     system:
-      "You explain a show settlement to the artist's tour manager in plain English. Use only numbers that appear in the data. " +
+      "You explain a show settlement to the artist's tour manager (Drake) in plain English. Use only numbers that appear in the data. " +
       "Don't calculate new numbers. Reply with JSON only.",
     user: `Artist: ${i.artistName}\nDeal: ${i.dealSummary}\nSettlement lines:\n${i.lines
       .map((l) => `- ${l.label}: $${Math.round(l.amount).toLocaleString("en-US")}`)

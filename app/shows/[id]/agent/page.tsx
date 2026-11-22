@@ -194,8 +194,8 @@ function RunView({ run }: { run: AgentRun }) {
           <div className={cn("mt-5 rounded-lg p-4 ring-1 ring-inset", run.termsStatus === "waiting_for_booker" ? "bg-amber-50/60 ring-amber-200/80" : "bg-brand-50/50 ring-brand-200/80")}>
             <div className="text-[13px] font-medium text-ink-900">
               {run.termsStatus === "committed_by_agent" && "Committed by the agent: every check passed."}
-              {run.termsStatus === "waiting_for_booker" && "Waiting for Mariana before the terms are committed"}
-              {run.termsStatus === "confirmed_by_booker" && "Confirmed by Mariana."}
+              {run.termsStatus === "waiting_for_booker" && "Waiting for Ethan before the terms are committed"}
+              {run.termsStatus === "confirmed_by_booker" && "Confirmed by Ethan."}
             </div>
             {run.termsStatus === "waiting_for_booker" && (
               <>
@@ -258,8 +258,8 @@ function RunView({ run }: { run: AgentRun }) {
       {run.draft && (
         <Card>
           <CardHeader>
-            <CardTitle>Draft to the agent</CardTitle>
-            <CardDescription>Draft only. The agent can&apos;t send email; Mariana reviews and sends it.</CardDescription>
+            <CardTitle>Draft to Drake</CardTitle>
+            <CardDescription>Draft only. The agent can&apos;t send email; Ethan reviews and sends it.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="text-[12px] text-ink-500 mb-1">Subject: {run.draft.subject}</div>
@@ -290,7 +290,7 @@ function RunView({ run }: { run: AgentRun }) {
             </Link>
             <Link href={`/shows/${run.showId}/settle/share`}>
               <Button variant="secondary" size="sm">
-                <Smartphone className="h-3.5 w-3.5" /> Tour manager view
+                <Smartphone className="h-3.5 w-3.5" /> Drake&apos;s view
               </Button>
             </Link>
           </div>

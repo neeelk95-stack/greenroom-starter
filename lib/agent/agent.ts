@@ -233,7 +233,7 @@ export async function runAgent(showId: string, emailText: string, emailFrom: str
       "commit_terms",
       "Commit terms to the deal record",
       gate.autoCommit ? "done" : "needs_person",
-      gate.autoCommit ? "Every check passed, so the agent committed the terms on its own." : `Waiting for Mariana: ${gate.reasons.join("; ")}.`,
+      gate.autoCommit ? "Every check passed, so the agent committed the terms on its own." : `Waiting for Ethan: ${gate.reasons.join("; ")}.`,
     ),
   );
 
@@ -248,17 +248,17 @@ export async function runAgent(showId: string, emailText: string, emailFrom: str
         artistName,
         showDate,
         agentFirstName,
-        bookerName: "Mariana",
+        bookerName: "Ethan",
         venueName: data.venue?.name ?? "The Crescent",
         flags: kept,
         allowedNumbers: allowed,
       },
       opts,
     );
-    draft = dr.problems.length ? draftMessage.rules({ artistName, showDate, agentFirstName, bookerName: "Mariana", venueName: data.venue?.name ?? "The Crescent", flags: kept, allowedNumbers: allowed }) : dr.output;
-    steps.push(step("message_agent", "Ask the artist's agent to clarify", "draft_ready", `Draft ready for Mariana to send.${dr.problems.length ? " The model's draft failed the number check, so the template was used." : ""}`, modelUse(dr)));
+    draft = dr.problems.length ? draftMessage.rules({ artistName, showDate, agentFirstName, bookerName: "Ethan", venueName: data.venue?.name ?? "The Crescent", flags: kept, allowedNumbers: allowed }) : dr.output;
+    steps.push(step("message_agent", "Ask Drake to clarify", "draft_ready", `Draft ready for Ethan to send.${dr.problems.length ? " The model's draft failed the number check, so the template was used." : ""}`, modelUse(dr)));
   } else {
-    steps.push(step("message_agent", "Ask the artist's agent to clarify", "skipped", "Nothing to clarify."));
+    steps.push(step("message_agent", "Ask Drake to clarify", "skipped", "Nothing to clarify."));
   }
 
   // 6. Calculate: deterministic engine, called as a tool.
@@ -282,7 +282,7 @@ export async function runAgent(showId: string, emailText: string, emailFrom: str
   steps.push(
     step(
       "prepare_packet",
-      "Prepare the packet and tour manager summary",
+      "Prepare the packet and Drake's summary",
       "done",
       summaryGrounded ? "Summary written; every number matches the engine." : `Model summary had unverified numbers (${sm.problems.join(", ")}); used the engine's own summary instead.`,
       modelUse(sm),
@@ -290,7 +290,7 @@ export async function runAgent(showId: string, emailText: string, emailFrom: str
   );
 
   // 8. People only.
-  steps.push(step("release_payout", "Approve the settlement and release the payout", "locked", "Locked until Mariana approves and the tour manager accepts. The agent has no tool for this."));
+  steps.push(step("release_payout", "Approve the settlement and release the payout", "locked", "Locked until Ethan approves and Drake accepts. The agent has no tool for this."));
 
   const modelSteps = [cls, ext, rd, sm];
   const totals = modelSteps.reduce(

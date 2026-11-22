@@ -31,7 +31,7 @@ export default function ContextPage() {
           Welcome to Greenroom.
         </h1>
         <p className="text-[14.5px] text-ink-600 mt-4 leading-relaxed max-w-2xl">
-          You&apos;re looking at our product as Mariana, lead booker at The
+          You&apos;re looking at our product as Ethan, lead booker at The
           Crescent. The product works. It&apos;s also visibly mediocre in
           places. Both of those things are true on purpose — this is the
           substrate for your case study.
@@ -71,7 +71,7 @@ export default function ContextPage() {
         <Step n={2}>
           Read the deal terms on a show detail page. Notice the gap between
           the structured fields (guarantee, percentage, expense cap) and the
-          free-text <em>deal notes</em> — the prose is what Mariana actually
+          free-text <em>deal notes</em> — the prose is what Ethan actually
           trusts.
         </Step>
         <Step n={3}>
@@ -123,7 +123,7 @@ export default function ContextPage() {
           icon={Users}
           title="User research transcripts"
           file="data/transcripts/"
-          desc="Mariana, Diego (tour manager), Marcus (GM), and Sarah Kim (WME agent). Mine these."
+          desc="Interviews with the booker, a tour manager, the GM and a WME agent. Mine these."
         />
         <DocLink
           icon={FileText}

@@ -69,7 +69,7 @@ export default async function ShowsPage() {
           Shows
         </h1>
         <p className="text-[14px] text-ink-500 mt-3 max-w-lg leading-relaxed">
-          Mariana&apos;s home view. {reversed.length} shows over 24 months.{" "}
+          Ethan&apos;s home view. {reversed.length} shows over 24 months.{" "}
           {settledCount} settled
           {disputedCount > 0 && (
             <>, <span className="text-rose-700">{disputedCount} disputed</span></>

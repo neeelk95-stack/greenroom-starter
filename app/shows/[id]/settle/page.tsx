@@ -438,7 +438,7 @@ function SignoffSection({ settlement }: { settlement: Settlement }) {
         {settlement.notes && (
           <div>
             <div className="eyebrow text-[10px] text-ink-500 mb-2">
-              Mariana&apos;s settlement notes
+              Ethan&apos;s settlement notes
             </div>
             <div className="text-[12.5px] text-ink-800 bg-canvas-soft rounded-lg p-4 ring-1 ring-ink-200/60 leading-relaxed">
               {settlement.notes}

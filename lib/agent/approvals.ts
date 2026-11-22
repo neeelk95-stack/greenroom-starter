@@ -18,9 +18,9 @@ export function approve(run: AgentRun, who: "booker" | "tourManager", by: string
 }
 
 export function canReleasePayout(run: AgentRun): { ok: boolean; reason?: string } {
-  if (run.termsStatus === "waiting_for_booker") return { ok: false, reason: "Mariana hasn't confirmed the deal terms yet." };
-  if (!run.approvals.booker) return { ok: false, reason: "Mariana hasn't approved the settlement." };
-  if (!run.approvals.tourManager) return { ok: false, reason: "The tour manager hasn't accepted the settlement." };
+  if (run.termsStatus === "waiting_for_booker") return { ok: false, reason: "Ethan hasn't confirmed the deal terms yet." };
+  if (!run.approvals.booker) return { ok: false, reason: "Ethan hasn't approved the settlement." };
+  if (!run.approvals.tourManager) return { ok: false, reason: "Drake hasn't accepted the settlement." };
   if (run.payout.released) return { ok: false, reason: "Already released." };
   return { ok: true };
 }

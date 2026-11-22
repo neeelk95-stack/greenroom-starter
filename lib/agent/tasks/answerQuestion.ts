@@ -47,7 +47,7 @@ export const answerQuestion: TaskDef<AnswerInput, AnswerOutput> = {
     }
     return {
       system:
-        "You answer questions at a music venue's settlement table, for the booker and the tour manager. You never calculate: " +
+        "You answer questions at a music venue's settlement table, for Ethan (the venue) and Drake (the artist's side). You never calculate: " +
         "the settlement engine does. Use only numbers from the data. Reply with JSON only.",
       user: `${contextBlock(i.context)}\n\nQuestion: ${i.question}\n\nIf the question asks what would happen under a different reading, ask the engine instead of answering:\n- {"action": "what_if", "change": {"kind": "reading", "key": "<one of the keys above>", "value": "<one of its option values>"}}\n- {"action": "what_if", "change": {"kind": "comps_count", "value": true}} if they ask about comps counting toward gross.\nOtherwise answer in 2 to 4 sentences: {"action": "answer", "answer": "..."}`,
     };

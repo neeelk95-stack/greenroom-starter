@@ -40,7 +40,7 @@ function rng(seed: number) {
 
 const usd = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
 const pct = (p: number) => Math.round(p * 100);
-const wrap = (artist: string, body: string, sender = "Sam") => `Hi Mariana,\n\nConfirming ${artist} at The Crescent.\n\n${body}\n\nThanks,\n${sender}`;
+const wrap = (artist: string, body: string, sender = "Drake") => `Hi Ethan,\n\nConfirming ${artist} at The Crescent.\n\n${body}\n\nThanks,\n${sender}`;
 
 function numberAppears(text: string, value: number): boolean {
   const variants = [Math.round(value).toLocaleString("en-US"), String(Math.round(value))];
@@ -232,7 +232,7 @@ export async function buildReadingsCases(seed = 11): Promise<ReadingsCase[]> {
 
   add(
     "coastal-spell-real",
-    wrap("Coastal Spell", "$5,000 vs 80% of net after expenses, whichever greater. Expenses capped at $2,500, marketing recoup of $900 against gross. Hospitality cap $500. +$1,000 bonus if gross exceeds $25,000.", "Andrea"),
+    wrap("Coastal Spell", "$5,000 vs 80% of net after expenses, whichever greater. Expenses capped at $2,500, marketing recoup of $900 against gross. Hospitality cap $500. +$1,000 bonus if gross exceeds $25,000.", "Drake"),
     ["recoup_vs_cap"],
     "the real clause behind the Coastal Spell dispute",
   );

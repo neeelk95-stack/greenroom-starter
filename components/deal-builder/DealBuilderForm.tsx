@@ -195,7 +195,7 @@ export function DealBuilderForm(props: Props) {
       projectedScenarios: projection,
       freetextContradictions: initialContradictions,
       savedAt: new Date().toISOString(),
-      savedBy: "Mariana Reyes",
+      savedBy: "Ethan",
       version: 1,
     };
     startTransition(async () => {

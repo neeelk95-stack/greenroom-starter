@@ -52,7 +52,7 @@ function reply(system: string, user: string): string {
       ],
     });
   }
-  if (system.includes("draft short")) return JSON.stringify({ subject: "Quick check on the recoup", body: "Hi Andrea, is the $900 marketing recoup inside the $2,500 cap or on top? Thanks, Mariana" });
+  if (system.includes("draft short")) return JSON.stringify({ subject: "Quick check on the recoup", body: "Hi Drake, is the $900 marketing recoup inside the $2,500 cap or on top? Thanks, Ethan" });
   if (system.includes("explain a show settlement")) return JSON.stringify({ summary: "Total to artist: $13,005. We also invented $4,444 here." });
   if (system.includes("settlement table")) {
     if (user.includes("The settlement engine computed")) return JSON.stringify({ action: "answer", answer: "Deducting the recoup tonight takes the artist from $13,005 to $12,285." });
@@ -198,10 +198,10 @@ async function main() {
   console.log("\nPeople-only steps");
   await check("the payout can't be released without both approvals", () => {
     assert.throws(() => releasePayout(run));
-    let r = confirmTerms(run, "Mariana");
-    r = approve(r, "booker", "Mariana");
+    let r = confirmTerms(run, "Ethan");
+    r = approve(r, "booker", "Ethan");
     assert.throws(() => releasePayout(r));
-    r = approve(r, "tourManager", "Tour manager");
+    r = approve(r, "tourManager", "Drake");
     r = releasePayout(r);
     assert.equal(r.payout.released, true);
     assert.ok(r.payout.note!.includes("Not an agent action"));

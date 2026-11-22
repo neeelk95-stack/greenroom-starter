@@ -160,7 +160,7 @@ export default async function ShowDetailPage({
             <AlertCircle className="h-4 w-4 text-amber-700 mt-0.5 shrink-0" />
             <div>
               <div className="eyebrow text-[10px] text-amber-800 mb-1.5">
-                Mariana&apos;s notes
+                Ethan&apos;s notes
               </div>
               <div className="text-[13px] text-ink-800 leading-relaxed">
                 {show.internalNotes}
@@ -176,7 +176,7 @@ export default async function ShowDetailPage({
               <div>
                 <CardTitle>Deal terms</CardTitle>
                 <CardDescription>
-                  What was negotiated. Mariana enters this from the email
+                  What was negotiated. Ethan enters this from the email
                   thread with the agent.
                 </CardDescription>
               </div>
@@ -257,7 +257,7 @@ export default async function ShowDetailPage({
                   {deal.dealNotesFreetext && (
                     <div>
                       <div className="eyebrow text-[10px] text-ink-500 mb-2">
-                        Deal notes (free text — what Mariana actually trusts)
+                        Deal notes (free text — what Ethan actually trusts)
                       </div>
                       <div className="text-[13px] text-ink-800 bg-canvas-soft rounded-lg p-4 ring-1 ring-ink-200/50 leading-relaxed font-[450]" style={{ fontStyle: "italic" }}>
                         {deal.dealNotesFreetext}

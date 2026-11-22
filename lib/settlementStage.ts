@@ -36,9 +36,9 @@ export const STAGE_LABELS: Record<SettlementStage, string> = {
 
 export const STAGE_DESCRIPTIONS: Record<SettlementStage, string> = {
   draft:
-    "Mariana is still entering numbers. Not yet sent to the artist team.",
+    "Ethan is still entering numbers. Not yet sent to the artist team.",
   submitted:
-    "Sent to the artist's tour manager. Waiting for them to start review.",
+    "Sent to Drake, the artist's tour manager. Waiting for them to start review.",
   in_review:
     "The artist team has opened the settlement and is reviewing line items.",
   signed:

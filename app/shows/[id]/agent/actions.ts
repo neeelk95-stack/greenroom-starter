@@ -40,14 +40,14 @@ export async function askAction(showId: string, question: string): Promise<Resul
 export async function confirmTermsAction(showId: string): Promise<Result> {
   const run = await getLatestRun(showId);
   if (!run) return { ok: false, error: "No run" };
-  await saveRun(confirmTerms(run, "Mariana"));
+  await saveRun(confirmTerms(run, "Ethan"));
   return done(showId);
 }
 
 export async function approveAction(showId: string, who: "booker" | "tourManager"): Promise<Result> {
   const run = await getLatestRun(showId);
   if (!run) return { ok: false, error: "No run" };
-  await saveRun(approve(run, who, who === "booker" ? "Mariana" : "Tour manager"));
+  await saveRun(approve(run, who, who === "booker" ? "Ethan" : "Drake"));
   return done(showId);
 }
 

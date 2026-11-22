@@ -31,7 +31,7 @@ flat and %-of-gross deals; everything else fell back to a spreadsheet.
 | Recoups already inside the receipts are not charged twice; expenses over the cap are shown as covered by the venue | engine |
 | Checks before signing: duplicate receipts, hospitality over the rider, comp notes that contradict their flag, notes that say a term changed, deal-type mismatch | `runChecks()` |
 | **Record of the room**: decisions, what was questioned, what was agreed, who signed. Saved as a snapshot in `data/settlementRecords/` | `lib/settlementRecordStore.ts` |
-| **Tour manager view**: phone-first, read-only, plain-English summary + every line with sources + what was agreed | `/shows/[id]/settle/share` |
+| **Drake's view** (the tour manager): phone-first, read-only, plain-English summary + every line with sources + what was agreed | `/shows/[id]/settle/share` |
 
 The math is deterministic on purpose: both sides must be able to reproduce it.
 The plain-English summary is a deterministic template today; the decision
@@ -43,7 +43,7 @@ marketing-recoup dispute). The engine shows that documented receipts were
 $1,600, so the $900 recoup plus receipts lands exactly on the $2,500 cap: both
 readings of the ambiguous clause pay **$12,285**, the amount that was finally
 agreed after a three-day email dispute. Pick how to treat the disputed recoup,
-add what was questioned and agreed, save, then open the **Tour manager view**.
+add what was questioned and agreed, save, then open **Drake's view**.
 Door deals (e.g. `show_0018`) show the fees decision; `show_0014` has a ratchet.
 
 ### Replay test against every past settlement
@@ -70,8 +70,8 @@ eval scorecard.
 
 | | |
 |---|---|
-| **What it does alone** | Reads and sorts the email, extracts the deal terms (every money term must quote the email, and code checks the quote), flags terms that can be read two ways, calculates the settlement with the engine, prepares the packet and tour-manager summary (every number checked against the engine), answers questions at the table |
-| **What it asks about** | Commits terms only if every check passes; otherwise Mariana confirms. Messages to the artist's agent are drafts; Mariana sends them |
+| **What it does alone** | Reads and sorts the email, extracts the deal terms (every money term must quote the email, and code checks the quote), flags terms that can be read two ways, calculates the settlement with the engine, prepares the packet and Drake's summary (every number checked against the engine), answers questions at the table |
+| **What it asks about** | Commits terms only if every check passes; otherwise Ethan confirms. Messages to Drake (the artist's side) are drafts; Ethan sends them |
 | **What it can't do** | Approve a settlement, release a payout or send email. Those tools don't exist on the agent's side (`lib/agent/tools.ts`), so no prompt can make it move money |
 | **Models** | One gateway (`lib/agent/router.ts`) and a routing table (`lib/agent/routing.ts`): local Gemma 4 12B, Claude Haiku / Sonnet / Opus 5.5, GPT-6 Luna / GPT-6.1 Sol, or rules. Escalates when a check fails, falls back when a model is down, logs tokens, latency and cost per call |
 | **Evals** | `npm run eval` runs the same test sets against any models: extraction on the real deal notes and on paraphrases, two-readings detection, and the 24 disputed settlements |
@@ -99,7 +99,7 @@ shows. Cloud models need `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` in `.env.local`
 ## The slice: Deal Builder (this prototype)
 
 This fork ships a working prototype of a **Deal Builder** — a booking-time
-surface that replaces "Mariana types a deal sheet" with "Mariana approves a
+surface that replaces "Ethan types a deal sheet" with "Ethan approves a
 recommended deal sheet," with the math derived from the venue's own data and
 the rationale visible to both sides.
 
@@ -129,7 +129,7 @@ The saved deal rationale lands in `data/dealRationales/` as a JSON snapshot
 |---|---|
 | **1. Scope tightly. Defend the cut.** | New routes are only `/deal-builder` and `/deal-builder/preview`. Settlement (`/settle`) was rebuilt afterwards on the same principles — see the section above. The PRD's BRs and non-goals are visible 1:1 in the code (search for `BR-01`…`BR-11` in `lib/`). |
 | **2. Take it deep.** | All **5 deal types** (`flat`, `vs`, `percentage_of_net`, `percentage_of_gross`, `door`) get type-specific recommendations. All **4 bonus structures** (`net_threshold`, `attendance_threshold`, `sellout`, `tier_ratchet`) net-trigger by construction. Repeat-vs-new-artist branches in the recommender. T-7 cancellation flag. Freetext-vs-structured reconciliation. Override+provenance loop end-to-end. |
-| **3. Show your reasoning.** | Every recommended term has a **"Why this?"** affordance showing source data + confidence. Overrides require a reason that propagates to the saved rationale. The agent-facing preview renders the *same* rationale block Mariana saw — same numbers, same provenance, both sides on one source of truth. |
+| **3. Show your reasoning.** | Every recommended term has a **"Why this?"** affordance showing source data + confidence. Overrides require a reason that propagates to the saved rationale. The agent-facing preview renders the *same* rationale block Ethan saw — same numbers, same provenance, both sides on one source of truth. |
 | **4. Design for humans, not screens.** | Single hero number (projected venue earnings, BR-02). Phone-first layout (sticky action bar, full-width modals on narrow). Form is **never empty** — recommendations pre-fill on load. Errors render above the field, not as toasts (UX-04). Provenance is one tap, not two. |
 | **5. Use AI like a senior teammate.** | **Deliberate restraint.** Deal math is deterministic — must be reproducible/defensible to agents. The single AI surface is **freetext-vs-structured contradiction detection** (`lib/freetextReconciliation.ts`) where prose drift is the actual failure mode. V1 ships with a regex implementation so the hiring team can run without an API key; the `detect()` interface is shaped for a drop-in LLM upgrade. Provenance throughout the UX is the explainability layer. |
 
@@ -139,7 +139,7 @@ The saved deal rationale lands in `data/dealRationales/` as a JSON snapshot
 lib/
   artistHistory.ts         # Artist + deal-type aggregates (p25/p50/p75) with source-show IDs
   dealRecommender.ts       # BR-driven recommendations per deal type
-  dealMathV2.ts            # Canonical net-first computation (BR-01) — used by both Mariana and agent views
+  dealMathV2.ts            # Canonical net-first computation (BR-01) — used by both Ethan's and Drake's views
   freetextReconciliation.ts # Contradiction detector (regex v1; LLM-ready interface)
   projection.ts            # T-7 sales projection for the cancellation flag (BR-07)
   dealRationaleStore.ts    # Persists rationale snapshots to data/dealRationales/
@@ -220,7 +220,7 @@ You'll see something like:
 
 Go to **[http://localhost:3000](http://localhost:3000)**.
 
-You'll land on Mariana's home view at The Crescent. **Click "Where to start" in the sidebar** for an in-product orientation.
+You'll land on Ethan's home view at The Crescent. **Click "Where to start" in the sidebar** for an in-product orientation.
 
 > **Tip:** Press **⌘K** (Mac) or **Ctrl+K** (Windows/Linux) anywhere in the app to open the command palette — search across shows and artists instantly.
 
@@ -228,11 +228,11 @@ You'll land on Mariana's home view at The Crescent. **Click "Where to start" in 
 
 ## What's running
 
-You're logged in automatically as **Mariana Reyes**, lead booker at The Crescent (650-cap, Nashville). The product has these surfaces:
+You're logged in automatically as **Ethan**, lead booker at The Crescent (650-cap, Nashville). The product has these surfaces:
 
 | Route | What it is |
 |---|---|
-| `/shows` | Mariana's home view. 24 months of completed shows, searchable and grouped by month. |
+| `/shows` | Ethan's home view. 24 months of completed shows, searchable and grouped by month. |
 | `/shows/[id]` | Show detail. Deal terms, artist info, ticket sales, expenses, comps. |
 | `/shows/[id]/settle` | The in-app settlement worksheet. **Try it on a few shows.** |
 | `/artists` | Roster of artists who've played the venue, bucketed by frequency. |
@@ -266,7 +266,7 @@ Twenty-four months of synthetic operational data, designed to feel like a real v
 
 A few things worth knowing:
 
-**The deal `notes_freetext` field is the truth.** The structured fields (`guarantee_amount`, `percentage`, `bonuses_json`, `expense_cap`) are filled inconsistently. Mariana enters deals as prose because the structured fields don't model the actual deals well. This mismatch is part of the realism.
+**The deal `notes_freetext` field is the truth.** The structured fields (`guarantee_amount`, `percentage`, `bonuses_json`, `expense_cap`) are filled inconsistently. Ethan enters deals as prose because the structured fields don't model the actual deals well. This mismatch is part of the realism.
 
 **Vs deals come in flavors.** About a third of Vs deals are "standard." The rest mix in walkout pots, tier ratchets, and vs-gross variants. The current in-app tool can't settle most of these.
 
@@ -298,7 +298,7 @@ data/
     └── sarah-kim.md       # Agent perspective (WME)
 ```
 
-These aren't decorative. They contain signals the database deliberately doesn't capture — Mariana's frustrations, the agent's pet peeves, the things that escalate disputes. Mine them.
+These aren't decorative. They contain signals the database deliberately doesn't capture — the booker's frustrations, the agent's pet peeves, the things that escalate disputes. Mine them.
 
 ---
 

@@ -48,7 +48,7 @@ export function AskPanel({ showId, suggestions }: { showId: string; suggestions:
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Ask what the tour manager would ask…"
+          placeholder="Ask what Drake would ask…"
           className="flex-1 h-9 rounded-lg border border-ink-200/80 bg-white px-3 text-[13px] focus:outline-none focus:ring-2 focus:ring-brand-700/30"
         />
         <Button variant="secondary" disabled={pending || !q.trim()}>

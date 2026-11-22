@@ -26,7 +26,7 @@ export function ConfirmTermsButton({ showId }: { showId: string }) {
     <div className="flex items-center gap-3">
       <Button variant="default" size="sm" disabled={pending} onClick={() => go(() => confirmTermsAction(showId))}>
         {pending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
-        Mariana confirms the terms
+        Ethan confirms the terms
       </Button>
       {error && <span className="text-[12px] text-rose-700">{error}</span>}
     </div>
@@ -57,11 +57,11 @@ export function PayoutPanel({
       <div className="grid sm:grid-cols-2 gap-2">
         <Button variant={booker ? "secondary" : "default"} disabled={pending || !!booker || !termsConfirmed} onClick={() => go(() => approveAction(showId, "booker"))}>
           {booker ? <Check className="h-3.5 w-3.5 text-brand-700" /> : <ShieldCheck className="h-3.5 w-3.5" />}
-          {booker ? `Approved by ${booker}` : "Mariana approves"}
+          {booker ? `Approved by ${booker}` : "Ethan approves"}
         </Button>
         <Button variant={tourManager ? "secondary" : "default"} disabled={pending || !!tourManager || !termsConfirmed} onClick={() => go(() => approveAction(showId, "tourManager"))}>
           {tourManager ? <Check className="h-3.5 w-3.5 text-brand-700" /> : <ShieldCheck className="h-3.5 w-3.5" />}
-          {tourManager ? `Accepted by ${tourManager}` : "Tour manager accepts"}
+          {tourManager ? `Accepted by ${tourManager}` : "Drake accepts"}
         </Button>
       </div>
       <Button variant="brand" size="lg" className="w-full" disabled={!ready || pending} onClick={() => go(() => releasePayoutAction(showId))}>
@@ -72,8 +72,8 @@ export function PayoutPanel({
         {released
           ? note
           : !termsConfirmed
-            ? "Locked: Mariana has to confirm the deal terms first."
-            : "Locked until Mariana approves and the tour manager accepts. Then a plain rule releases it. The agent has no tool for this step, so no prompt can make it move money."}
+            ? "Locked: Ethan has to confirm the deal terms first."
+            : "Locked until Ethan approves and Drake accepts. Then a plain rule releases it. The agent has no tool for this step, so no prompt can make it move money."}
       </p>
       {error && <div className="text-[12px] text-rose-700">{error}</div>}
     </div>

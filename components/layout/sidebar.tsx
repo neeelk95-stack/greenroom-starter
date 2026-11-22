@@ -50,11 +50,11 @@ export function Sidebar() {
 
       <div className="px-4 py-3 border-t border-ink-200/60 flex items-center gap-2.5">
         <div className="w-7 h-7 rounded-full bg-gradient-to-br from-ink-600 to-ink-900 flex items-center justify-center text-white text-[10px] font-medium">
-          MR
+          E
         </div>
         <div className="min-w-0">
           <div className="text-[12px] font-medium text-ink-900 leading-tight truncate">
-            Mariana Reyes
+            Ethan
           </div>
           <div className="text-[10px] text-ink-400 leading-tight">
             Lead Booker

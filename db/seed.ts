@@ -162,7 +162,7 @@ const AGENT_DEFS = [
   { id: "agent_sarah_kim", name: "Sarah Kim", agencyId: "agcy_wme", email: "skim@wme.com", preferencesNotes: "One of the easier WME agents. Reads settlements carefully but fairly. Pet peeve: 'Miscellaneous' line items in expenses without itemization." },
   { id: "agent_daniel_hwang", name: "Daniel Hwang", agencyId: "agcy_wme", email: "dhwang@wme.com", preferencesNotes: "Pushes back hard. Wrote the email thread on the Coastal Spell dispute (March 2025). Tends to ambiguity in deal emails — worth pre-negotiating clarifications." },
   { id: "agent_andrea_pelletier", name: "Andrea Pelletier", agencyId: "agcy_wme", email: "apelletier@wme.com", preferencesNotes: "Negotiates the deals; her colleagues handle settlement." },
-  { id: "agent_danny_ortiz", name: "Danny Ortiz", agencyId: "agcy_caa", email: "dortiz@caa.com", preferencesNotes: "Easygoing. Trusts Mariana. Quick to sign off." },
+  { id: "agent_danny_ortiz", name: "Danny Ortiz", agencyId: "agcy_caa", email: "dortiz@caa.com", preferencesNotes: "Easygoing. Trusts Ethan. Quick to sign off." },
   { id: "agent_meera_patel", name: "Meera Patel", agencyId: "agcy_caa", email: "mpatel@caa.com", preferencesNotes: "New at CAA, took over a roster from a departing agent. Still learning our venue." },
   { id: "agent_chris_lockhart", name: "Chris Lockhart", agencyId: "agcy_caa", email: "clockhart@caa.com", preferencesNotes: null },
   { id: "agent_pat_cho", name: "Pat Cho", agencyId: "agcy_independent", email: "pat@patcho.co", preferencesNotes: "Books smaller indie bands. Often the artist's manager too." },
@@ -866,7 +866,7 @@ async function main() {
 
   await db.insert(venues).values({ id: VENUE_ID, name: "The Crescent", capacity: VENUE_CAPACITY, city: "Nashville", state: "TN" });
   await db.insert(users).values([
-    { id: MARIANA_ID, name: "Mariana Reyes", email: "mariana@thecrescentnashville.com", role: "booker", venueId: VENUE_ID },
+    { id: MARIANA_ID, name: "Ethan", email: "ethan@thecrescentnashville.com", role: "booker", venueId: VENUE_ID },
     { id: MARCUS_ID, name: "Marcus Holland", email: "marcus@thecrescentnashville.com", role: "gm", venueId: VENUE_ID },
   ]);
   await db.insert(agencies).values(AGENCIES);
@@ -1089,7 +1089,7 @@ async function main() {
       stl.signoffText =
         "Looks good — TM. Wire to the usual account when ready.";
       stl.notes =
-        "[Mariana, internal] TM signed off Sunday morning. His assistant emailed Monday questioning the production-overage line — that's why this is showing as disputed. Need to either re-send a clean version or close the dispute. Haven't gotten back to it.";
+        "[Ethan, internal] TM signed off Sunday morning. His assistant emailed Monday questioning the production-overage line — that's why this is showing as disputed. Need to either re-send a clean version or close the dispute. Haven't gotten back to it.";
     }
   }
 
@@ -1333,7 +1333,7 @@ async function main() {
     setTime: "21:00",
     roomConfig: "standing",
     internalNotes:
-      "[Mariana, March 19] Settlement disputed by Daniel Hwang at WME re: marketing recoup interpretation. Marcus signed off on additional $720 to make it go away. See dispute-thread for full email chain. Going forward — get marketing recoup language explicit in the deal email.",
+      "[Ethan, March 19] Settlement disputed by Daniel Hwang at WME re: marketing recoup interpretation. Marcus signed off on additional $720 to make it go away. See dispute-thread for full email chain. Going forward — get marketing recoup language explicit in the deal email.",
     createdAt: coastalShowDate,
   });
   dealsToInsert.push({
