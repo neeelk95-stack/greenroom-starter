@@ -23,7 +23,7 @@ type Scorecard = {
     model: string;
     label: string;
     extract: { fieldAccuracy: number; citationsVerified: number; p50ms: number; p95ms: number; costPer100: number; bySuite: Record<string, number> } | null;
-    readings: (ReadingsScore & { precision: number; p50ms: number; costPer100: number; beforeChecks?: ReadingsScore; ranAt?: string }) | null;
+    readings: (ReadingsScore & { precision: number; p50ms: number; costPer100: number; beforeChecks?: ReadingsScore; ranAt?: string; note?: string }) | null;
     readingsNew?: (ReadingsScore & { beforeChecks?: ReadingsScore }) | null;
     disputed: { recall: number; positives: number } | null;
   }[];
@@ -223,7 +223,10 @@ export default async function AgentOverviewPage() {
               <tbody>
                 {card.results.map((r) => (
                   <tr key={r.model} className="border-t border-ink-100">
-                    <td className="py-2 pr-3 text-ink-900 whitespace-nowrap">{r.label}</td>
+                    <td className="py-2 pr-3 text-ink-900 whitespace-nowrap">
+                      {r.label}
+                      {r.readings?.note && <div className="text-[10.5px] text-ink-400 whitespace-normal max-w-[180px]">{r.readings.note}</div>}
+                    </td>
                     <td className="py-2 pr-3">{r.extract ? <Gate ok={r.extract.fieldAccuracy >= card.gates.extractFieldAccuracy}>{pct(r.extract.fieldAccuracy)}</Gate> : "—"}</td>
                     <td className="py-2 pr-3 tabular text-ink-600">{r.extract?.bySuite?.["extract-paraphrased"] != null ? pct(r.extract.bySuite["extract-paraphrased"]) : "—"}</td>
                     <td className="py-2 pr-3">{r.extract ? <Gate ok={r.extract.citationsVerified >= card.gates.citationsVerified}>{pct(r.extract.citationsVerified)}</Gate> : "—"}</td>

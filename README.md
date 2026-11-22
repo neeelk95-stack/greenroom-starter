@@ -94,6 +94,8 @@ npm run eval -- --models sonnet-5.5 --suite readings           # Sonnet only on 
 ```
 
 Each run adds its models to the same scorecard, so the Haiku, Sonnet, Gemma and rules rows sit side by side.
+To put an earlier run of a model back on the scorecard (labeled with its date), use
+`npm run eval:restore -- --model gemma-local` (finds the newest committed run from before the code checks).
 Rate limits and overloads (429/529) are retried with backoff; a bad key or an empty balance fails at once
 and the eval prints the API's message.
 

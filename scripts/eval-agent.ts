@@ -264,7 +264,7 @@ async function main() {
 
   type R = { recall: number; falseFlagRateOnClear: number; p50ms?: number; p95ms?: number; costPer100?: number; caught?: number; positives?: number; clearFlagged?: number; clear?: number; beforeChecks?: { recall: number; falseFlagRateOnClear: number; caught?: number; positives?: number; clearFlagged?: number; clear?: number }; falseFlags?: FlagNote[]; droppedTruePositives?: FlagNote[]; ranAt?: string };
   type E = { fieldAccuracy: number; citationsVerified: number; p50ms: number; p95ms: number; costPer100: number; misses: string[]; ranAt?: string };
-  const day = (iso?: string) => (iso ? iso.slice(0, 10) : "");
+  const day = (iso?: string) => (iso ? new Date(iso).toLocaleDateString("en-CA") : "");
   const frac = (a?: number, b?: number) => (a != null && b != null ? ` (${a} of ${b})` : "");
   const c = report.cases;
   const lines: string[] = [];
@@ -274,7 +274,7 @@ async function main() {
   for (const r of report.results) {
     const ex = r.extract as E | null, rd = r.readings as R | null, dp = r.disputed as R | null;
     lines.push(
-      `| ${r.label} | ${ex ? fmtPct(ex.fieldAccuracy) : "—"} | ${ex ? fmtPct(ex.citationsVerified) : "—"} | ${rd ? fmtPct(rd.recall) + frac(rd.caught, rd.positives) : "—"} | ${rd ? fmtPct(rd.falseFlagRateOnClear) + frac(rd.clearFlagged, rd.clear) : "—"} | ${dp ? fmtPct(dp.recall) : "—"} | ${ex ? `${ex.p50ms} / ${ex.p95ms} ms` : "—"} | ${ex ? `$${ex.costPer100.toFixed(4)}` : "—"} |`,
+      `| ${r.label}${(rd as { note?: string } | null)?.note ? ` (${(rd as { note?: string }).note})` : ""} | ${ex ? fmtPct(ex.fieldAccuracy) : "—"} | ${ex ? fmtPct(ex.citationsVerified) : "—"} | ${rd ? fmtPct(rd.recall) + frac(rd.caught, rd.positives) : "—"} | ${rd ? fmtPct(rd.falseFlagRateOnClear) + frac(rd.clearFlagged, rd.clear) : "—"} | ${dp ? fmtPct(dp.recall) : "—"} | ${ex ? `${ex.p50ms} / ${ex.p95ms} ms` : "—"} | ${ex ? `$${ex.costPer100.toFixed(4)}` : "—"} |`,
     );
   }
   lines.push(``, `Release gates: field accuracy ≥ ${fmtPct(gates.extractFieldAccuracy)}, citations ${fmtPct(gates.citationsVerified)}, two-readings recall ≥ ${fmtPct(gates.readingsRecall)}, false flags on clear emails ≤ ${fmtPct(gates.falseFlagRateOnClear)}.`);
@@ -289,7 +289,7 @@ async function main() {
     const b = rd.beforeChecks;
     const lost = (rd.droppedTruePositives?.length ?? 0) + (nw?.droppedTruePositives?.length ?? 0) + (dp?.droppedTruePositives?.length ?? 0);
     lines.push(
-      `| ${r.label} | ${b ? `${fmtPct(b.recall)} → ` : ""}${fmtPct(rd.recall)} | ${b ? `${fmtPct(b.falseFlagRateOnClear)}${frac(b.clearFlagged, b.clear)} → ` : ""}${fmtPct(rd.falseFlagRateOnClear)}${frac(rd.clearFlagged, rd.clear)} | ${nw ? fmtPct(nw.recall) + frac(nw.caught, nw.positives) : "—"} | ${nw ? fmtPct(nw.falseFlagRateOnClear) + frac(nw.clearFlagged, nw.clear) : "—"} | ${b ? lost : "—"} | ${rd.p50ms != null ? `${(rd.p50ms / 1000).toFixed(1)} / ${((rd.p95ms ?? 0) / 1000).toFixed(1)} s` : "—"} | ${rd.costPer100 != null ? `$${rd.costPer100.toFixed(4)}` : "—"} | ${day(rd.ranAt)} |`,
+      `| ${r.label} | ${b ? `${fmtPct(b.recall)} → ` : ""}${fmtPct(rd.recall)} | ${b ? `${fmtPct(b.falseFlagRateOnClear)}${frac(b.clearFlagged, b.clear)} → ` : ""}${fmtPct(rd.falseFlagRateOnClear)}${frac(rd.clearFlagged, rd.clear)} | ${nw ? fmtPct(nw.recall) + frac(nw.caught, nw.positives) : "—"} | ${nw ? fmtPct(nw.falseFlagRateOnClear) + frac(nw.clearFlagged, nw.clear) : "—"} | ${b ? lost : "—"} | ${rd.p50ms != null ? `${(rd.p50ms / 1000).toFixed(1)}${rd.p95ms != null ? ` / ${(rd.p95ms / 1000).toFixed(1)}` : ""} s` : "—"} | ${rd.costPer100 != null ? `$${rd.costPer100.toFixed(4)}` : "—"} | ${day(rd.ranAt)} |`,
     );
   }
   for (const r of report.results) {
