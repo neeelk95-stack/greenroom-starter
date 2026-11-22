@@ -2,13 +2,14 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Calendar, Users, BarChart3 } from "lucide-react";
+import { Calendar, Users, BarChart3, Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
   { href: "/shows", label: "Shows", icon: Calendar },
   { href: "/artists", label: "Artists", icon: Users },
   { href: "/reports", label: "Reports", icon: BarChart3 },
+  { href: "/agent", label: "Agent", icon: Bot },
 ];
 
 export function NavLinks() {

@@ -7,6 +7,7 @@ import {
   Clock,
   TrendingUp,
   Sparkles,
+  Bot,
 } from "lucide-react";
 import { getShowById } from "@/lib/queries";
 import {
@@ -131,6 +132,12 @@ export default async function ShowDetailPage({
               <Button variant="secondary" size="default">
                 <Sparkles className="h-3.5 w-3.5" />
                 Open Deal Builder
+              </Button>
+            </Link>
+            <Link href={`/shows/${show.id}/agent`}>
+              <Button variant="secondary" size="default">
+                <Bot className="h-3.5 w-3.5" />
+                Run the agent
               </Button>
             </Link>
           </div>

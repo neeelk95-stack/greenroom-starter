@@ -1,0 +1,127 @@
+{
+  "generatedAt": "2026-11-22T00:54:03.338Z",
+  "cases": {
+    "extract": 50,
+    "readings": 29,
+    "disputed": 24,
+    "disputedWithClause": 9
+  },
+  "gates": {
+    "extractFieldAccuracy": 0.98,
+    "citationsVerified": 1,
+    "readingsRecall": 0.9,
+    "falseFlagRateOnClear": 0.1
+  },
+  "results": [
+    {
+      "model": "rules",
+      "label": "Rules (no AI)",
+      "local": true,
+      "extract": {
+        "fieldAccuracy": 0.9071729957805907,
+        "dealsFullyCorrect": 0.66,
+        "citationsVerified": 1,
+        "bySuite": {
+          "extract-real": 1,
+          "extract-paraphrased": 0.824
+        },
+        "misses": [
+          "para:show_0052 expenseCap: expected 850, got null",
+          "para:show_0418 hospitalityCap: expected 600, got null",
+          "para:show_0386 dealType: expected vs, got percentage_of_net",
+          "para:show_0386 guaranteeAmount: expected 3728, got null",
+          "para:show_0386 expenseCap: expected 1850, got null",
+          "para:show_0386 hospitalityCap: expected 500, got null",
+          "para:show_0297 expenseCap: expected 1200, got null",
+          "para:show_0370 hospitalityCap: expected 600, got null",
+          "para:show_0161 guaranteeAmount: expected 1113, got null",
+          "para:show_0288 guaranteeAmount: expected 648, got null",
+          "para:show_0019 guaranteeAmount: expected 1116, got null",
+          "para:show_0341 expenseCap: expected 2800, got null"
+        ],
+        "p50ms": 0,
+        "p95ms": 1,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "costUsd": 0,
+        "costPer100": 0,
+        "failures": 0
+      },
+      "readings": {
+        "recall": 0.5263157894736842,
+        "precision": 1,
+        "falseFlagRateOnClear": 0,
+        "perType": {
+          "recoup_vs_cap": {
+            "tp": 3,
+            "fn": 1,
+            "fp": 0
+          },
+          "door_fees": {
+            "tp": 2,
+            "fn": 1,
+            "fp": 0
+          },
+          "ratchet_scope": {
+            "tp": 2,
+            "fn": 1,
+            "fp": 0
+          },
+          "walkout_amount": {
+            "tp": 1,
+            "fn": 2,
+            "fp": 0
+          },
+          "changed_after_booking": {
+            "tp": 1,
+            "fn": 2,
+            "fp": 0
+          },
+          "missing_terms": {
+            "tp": 1,
+            "fn": 2,
+            "fp": 0
+          },
+          "other": {
+            "tp": 0,
+            "fn": 0,
+            "fp": 0
+          }
+        },
+        "misses": [
+          "recoup-2: missed recoup_vs_cap",
+          "door-1: missed door_fees",
+          "walkout-1: missed walkout_amount",
+          "walkout-2: missed walkout_amount",
+          "ratchet-1: missed ratchet_scope",
+          "changed-0: missed changed_after_booking",
+          "changed-2: missed changed_after_booking",
+          "missing-1: missed missing_terms",
+          "missing-2: missed missing_terms"
+        ],
+        "p50ms": 0,
+        "p95ms": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "costUsd": 0,
+        "costPer100": 0,
+        "failures": 0
+      },
+      "disputed": {
+        "recall": 0.9,
+        "precision": 1,
+        "positives": 10,
+        "misses": [
+          "disputed:show_0069: missed walkout_amount"
+        ],
+        "p50ms": 0,
+        "p95ms": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "costUsd": 0,
+        "costPer100": 0,
+        "failures": 0
+      }
+    }
+  ]
+}

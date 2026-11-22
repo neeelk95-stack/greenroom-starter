@@ -11,7 +11,10 @@
     "db:seed": "tsx db/seed.ts",
     "db:reset": "rm -f data/greenroom.db && drizzle-kit push && tsx db/seed.ts",
     "db:studio": "drizzle-kit studio",
-    "replay": "tsx scripts/replay-settlements.ts"
+    "replay": "tsx scripts/replay-settlements.ts",
+    "agent": "tsx scripts/run-agent.ts",
+    "agent:test": "tsx scripts/test-agent.ts",
+    "eval": "tsx scripts/eval-agent.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.17.3",

@@ -61,6 +61,41 @@ human review. The old engine could settle 38% of these shows at all.
 
 ---
 
+## The Deal Ledger agent
+
+An agent that takes a show from the offer email to a settlement ready to sign,
+and stops before money moves. Open `/shows/show_coastal_spell_dispute/agent`
+(or any show → **Run the agent**), and `/agent` for routing, autonomy and the
+eval scorecard.
+
+| | |
+|---|---|
+| **What it does alone** | Reads and sorts the email, extracts the deal terms (every money term must quote the email, and code checks the quote), flags terms that can be read two ways, calculates the settlement with the engine, prepares the packet and tour-manager summary (every number checked against the engine), answers questions at the table |
+| **What it asks about** | Commits terms only if every check passes; otherwise Mariana confirms. Messages to the artist's agent are drafts; Mariana sends them |
+| **What it can't do** | Approve a settlement, release a payout or send email. Those tools don't exist on the agent's side (`lib/agent/tools.ts`), so no prompt can make it move money |
+| **Models** | One gateway (`lib/agent/router.ts`) and a routing table (`lib/agent/routing.ts`): local Gemma 4 12B, Claude Haiku / Sonnet / Opus 5.5, GPT-6 Luna / GPT-6.1 Sol, or rules. Escalates when a check fails, falls back when a model is down, logs tokens, latency and cost per call |
+| **Evals** | `npm run eval` runs the same test sets against any models: extraction on the real deal notes and on paraphrases, two-readings detection, and the 24 disputed settlements |
+
+The engine prices every flag. On Coastal Spell, the agent flags "expenses capped
+at $2,500, marketing recoup of $900 against gross" at booking. The engine shows
+both readings pay $12,285 at that show's actual receipts, but $11,565 vs $12,285
+if receipts had reached the cap: the $720 the venue later conceded.
+
+```bash
+npm run agent:test        # self-test with mock models: routing, fallback, escalation, guardrails
+npm run agent -- --show show_coastal_spell_dispute --profile local
+npm run eval -- --models rules,gemma-local,haiku-5.5,sonnet-5.5
+```
+
+**Run it on a local model (free, private, works offline):** install
+[Ollama](https://ollama.com), `ollama pull gemma4:12b`, keep Ollama running, and
+pick **Local only** on the agent page. LM Studio works too: set
+`LOCAL_BASE_URL=http://localhost:1234/v1` and `LOCAL_MODEL` to the model id it
+shows. Cloud models need `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` in `.env.local`
+(see `.env.example`). With nothing configured, the agent runs on rules.
+
+---
+
 ## The slice: Deal Builder (this prototype)
 
 This fork ships a working prototype of a **Deal Builder** — a booking-time

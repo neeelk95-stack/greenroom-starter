@@ -50,3 +50,7 @@ data/settlementRecords/
 venue_earnings_per_show.csv
 venue_earnings_per_show_excel.xlsx
 ~$*.xlsx
+
+# Agent runs (audit trail of each run; per-run artifacts)
+data/agentRuns/
+!.env.example
