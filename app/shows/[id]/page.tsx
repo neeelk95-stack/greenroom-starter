@@ -8,7 +8,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { getShowById } from "@/lib/queries";
-import { StagehandLink } from "@/components/agent/Stagehand";
+import { BackstageLink } from "@/components/agent/Backstage";
 import {
   Card,
   CardContent,
@@ -127,7 +127,7 @@ export default async function ShowDetailPage({
                 {settlement ? "View settlement" : "Settle show"}
               </Button>
             </Link>
-            <StagehandLink href={`/shows/${show.id}/agent`} />
+            <BackstageLink href={`/shows/${show.id}/agent`} />
           </div>
         </div>
 

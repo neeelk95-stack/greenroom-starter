@@ -23,6 +23,26 @@ export function quoteAppears(source: string, quote: string | null | undefined): 
   return q.length >= 2 && norm(source).includes(q);
 }
 
+/**
+ * The sentence (or clause between line breaks) that contains the quote,
+ * normalized. Models often quote only the key phrase ("Renegotiated last
+ * week"), so checks about what a clause says look at its whole sentence.
+ */
+export function sentenceWithQuote(source: string, quote: string | null | undefined): string {
+  if (!quote) return "";
+  const lines = source.split(/\n+/).map(norm);
+  const q = norm(quote).replace(/^["'.\s]+|["'.\s]+$/g, "");
+  const line = lines.find((l) => l.includes(q));
+  if (!line) return "";
+  const i = line.indexOf(q);
+  const before = line.slice(0, i);
+  const starts = [...before.matchAll(/[.!?]\s/g)].map((m) => (m.index ?? 0) + 2);
+  const start = starts.length ? starts[starts.length - 1] : 0;
+  const after = line.slice(i + q.length);
+  const end = after.search(/[.!?](\s|$)/);
+  return line.slice(start, end === -1 ? line.length : i + q.length + end + 1).trim();
+}
+
 /** Numbers mentioned in text, with "k" and percentages expanded. */
 export function numbersIn(text: string): { value: number; percent: boolean; raw: string }[] {
   const out: { value: number; percent: boolean; raw: string }[] = [];

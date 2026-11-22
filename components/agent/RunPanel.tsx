@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Laptop, Cloud, ScrollText } from "lucide-react";
-import { AGENT_NAME, StagehandLabel, StagehandMark, stagehandButtonClass } from "@/components/agent/Stagehand";
+import { AGENT_NAME, BackstageLabel, BackstageMark, backstageButtonClass } from "@/components/agent/Backstage";
 import { cn } from "@/lib/utils";
 import { runAgentAction } from "@/app/shows/[id]/agent/actions";
 
@@ -77,10 +77,10 @@ export function RunPanel({
       </div>
 
       <div className="flex items-center gap-3">
-        <button type="button" onClick={run} disabled={pending} className={stagehandButtonClass}>
-          <StagehandMark working={pending} />
-          <StagehandLabel
-            title={pending ? `${AGENT_NAME} is working…` : `Send in ${AGENT_NAME}`}
+        <button type="button" onClick={run} disabled={pending} className={backstageButtonClass}>
+          <BackstageMark working={pending} />
+          <BackstageLabel
+            title={pending ? `${AGENT_NAME} is working…` : `Send to ${AGENT_NAME}`}
             subtitle={pending ? (chosen?.label ?? "") : "Reads the email, checks the terms, preps the settlement"}
           />
         </button>

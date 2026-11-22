@@ -17,7 +17,7 @@ import { AskPanel } from "@/components/agent/AskPanel";
 import { ConfirmTermsButton, PayoutPanel } from "@/components/agent/PeopleActions";
 import { ModelChip, usd } from "@/components/agent/ModelChip";
 import { cn } from "@/lib/utils";
-import { AGENT_NAME } from "@/components/agent/Stagehand";
+import { AGENT_NAME } from "@/components/agent/Backstage";
 
 export const dynamic = "force-dynamic";
 
@@ -248,8 +248,21 @@ function RunView({ run }: { run: AgentRun }) {
               </div>
             ))}
             {run.droppedFlags > 0 && (
-              <div className="text-[11.5px] text-ink-400">
-                {run.droppedFlags} flag{run.droppedFlags === 1 ? "" : "s"} dropped because the quoted words weren&apos;t in the email.
+              <div className="text-[11.5px] text-ink-400 space-y-0.5">
+                <div>
+                  {run.droppedFlags} more flag{run.droppedFlags === 1 ? "" : "s"} raised by the model and dropped by the checks:
+                </div>
+                {run.droppedDetails?.length ? (
+                  <ul className="list-disc pl-4">
+                    {run.droppedDetails.map((d, i) => (
+                      <li key={i}>
+                        {d.type.replace(/_/g, " ")}: {d.detail}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div>the quoted words weren&apos;t in the email.</div>
+                )}
               </div>
             )}
           </CardContent>

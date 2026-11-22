@@ -9,7 +9,7 @@ const items = [
   { href: "/shows", label: "Shows", icon: Calendar },
   { href: "/artists", label: "Artists", icon: Users },
   { href: "/reports", label: "Reports", icon: BarChart3 },
-  { href: "/agent", label: "Stagehand", icon: Sparkles },
+  { href: "/agent", label: "Backstage", icon: Sparkles },
 ];
 
 export function NavLinks() {

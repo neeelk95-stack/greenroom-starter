@@ -1,7 +1,7 @@
 import type { Readings } from "@/lib/settlementEngine";
 import type { TaskDef } from "./types";
 import { asObject, asString } from "./types";
-import { quoteAppears } from "../verify";
+import { verifyFlags, type DroppedFlag } from "./flagChecks";
 
 export const READING_TYPES = [
   "recoup_vs_cap",
@@ -34,7 +34,8 @@ export const READING_LABELS: Record<ReadingType, string> = {
 
 export type Flag = { type: ReadingType; quote: string; question: string; readingA: string; readingB: string };
 export type ReadingsInput = { email: string };
-export type ReadingsOutput = { flags: Flag[] };
+/** flags: what survived the checks in flagChecks.ts. dropped: what the model raised that didn't, with the reason. */
+export type ReadingsOutput = { flags: Flag[]; dropped: DroppedFlag[] };
 
 export const findTwoReadings: TaskDef<ReadingsInput, ReadingsOutput> = {
   name: "find_two_readings",
@@ -42,10 +43,11 @@ export const findTwoReadings: TaskDef<ReadingsInput, ReadingsOutput> = {
   prompt: ({ email }) => ({
     system:
       "You review a music venue's booking email for terms that two reasonable people could read in two different ways, " +
-      "where the reading changes what the artist is paid. You never calculate anything. Reply with JSON only.",
-    user: `Email:\n<<<\n${email}\n>>>\n\nLook for these patterns. Use the type names exactly:\n- recoup_vs_cap: a recoup or deduction (for example marketing) is mentioned alongside an expense cap, and the email doesn't say whether it sits inside the cap or on top of it.\n- door_fees: a door deal gives the artist the door or ticket revenue minus expenses, and doesn't say whether ticketing fees come off first.\n- ratchet_scope: the percentage steps up past a sales tier, and doesn't say whether the higher % applies to all of net or only above the tier.\n- walkout_amount: the artist gets 100% (or all) of gross above a threshold.\n- changed_after_booking: the email says a term was changed, renegotiated or updated after the original deal.\n- missing_terms: the email refers to terms that aren't actually stated (for example "bonuses per the deal memo").\n- other: any other ambiguity that changes the payout.\n\nIf the email states the answer explicitly (for example "recoup included in the expense cap" or "after ticketing fees"), do not flag it.\n\nReply {"flags": [{"type": "<type>", "quote": "<exact words from the email>", "question": "<one short question to ask the agent>", "readingA": "<first reading>", "readingB": "<second reading>"}]}\nReply {"flags": []} if every term is clear.`,
+      "where the reading changes what the artist is paid. Most booking emails have none, so an empty list is the usual answer. " +
+      "You never calculate anything. Reply with JSON only.",
+    user: `Email:\n<<<\n${email}\n>>>\n\nFlag a term only if all three are true:\n1. The exact words are in the email.\n2. Nothing else in the email answers the question.\n3. The two readings would pay the artist different amounts.\n\nTypes (use these names exactly):\n- recoup_vs_cap: the venue takes back an amount (a recoup, marketing or ad spend) and there is an expense cap, and the email doesn't say whether that amount sits inside the cap or on top of it.\n- door_fees: the artist is paid from the door or ticket revenue minus expenses, and the email doesn't say whether ticketing fees come off first.\n- ratchet_scope: the percentage steps up past a sales tier, and the email doesn't say whether the higher % applies to all of net or only above the tier.\n- walkout_amount: the artist gets 100% (or all) of gross above a threshold, and the email doesn't give a fixed amount.\n- changed_after_booking: the email says a term was changed, renegotiated or updated after the original deal.\n- missing_terms: the email refers to terms that aren't stated in it (for example "bonuses per the deal memo").\n- other: any other term with two readings that pay the artist differently.\n\nDo not flag:\n- A deal that is stated completely. A flat guarantee, or "guarantee vs X% of net after expenses" with the expense cap given, is a normal deal, not an ambiguity.\n- Something the email doesn't mention. No recoup, bonus or ratchet in the email means nothing to flag about it.\n- A term the email settles, for example "included in the expense cap", "in addition to the cap", "after ticketing fees" or "on all of net".\n- Logistics that don't change the amount: schedules, production, hospitality items, how or when payment is made.\n\nExample: "Guarantee of $1,800, nothing else. We settle in cash on the night." -> {"flags": []}\n\nReply {"flags": [{"type": "<type>", "quote": "<exact words from the email>", "question": "<one short question to ask the agent>", "readingA": "<first reading>", "readingB": "<second reading>"}]}\nReply {"flags": []} if every term is clear.`,
   }),
-  parse: (json) => {
+  parse: (json, { email }) => {
     const o = asObject(json);
     const raw = Array.isArray(o.flags) ? o.flags : [];
     const flags: Flag[] = [];
@@ -60,11 +62,12 @@ export const findTwoReadings: TaskDef<ReadingsInput, ReadingsOutput> = {
         readingB: asString(x.readingB),
       });
     }
-    return { flags: dedupe(flags) };
+    return verifyFlags(email, dedupe(flags));
   },
-  check: ({ flags }, { email }) =>
-    flags.filter((f) => !quoteAppears(email, f.quote)).map((f) => `${f.type}: quote isn't in the email ("${f.quote.slice(0, 60)}")`),
-  rules: ({ email }) => ({ flags: rulesReadings(email) }),
+  // A made-up quote is a model error worth escalating; the other drops are the checks doing their job.
+  check: ({ dropped }) =>
+    dropped.filter((f) => f.reason === "quote").map((f) => `${f.type}: quote isn't in the email ("${f.quote.slice(0, 60)}")`),
+  rules: ({ email }) => verifyFlags(email, rulesReadings(email)),
 };
 
 function dedupe(flags: Flag[]): Flag[] {

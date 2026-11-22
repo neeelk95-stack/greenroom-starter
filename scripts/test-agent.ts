@@ -215,6 +215,58 @@ async function main() {
     delete process.env.LOCAL_API;
   });
 
+  console.log("\nTwo-readings checks");
+  const { checkFlag, verifyFlags, typeIsOpen } = await import("../lib/agent/tasks/flagChecks");
+  const { rulesReadings } = await import("../lib/agent/tasks/findTwoReadings");
+  const { buildReadingsCases, buildNewWordingCases, buildDisputedCases } = await import("../lib/agent/evalData");
+  const readingSets = [...(await buildReadingsCases()), ...buildNewWordingCases(), ...(await buildDisputedCases())];
+  const caseById = (id: string) => readingSets.find((c) => c.id === id)!;
+  const flag = (type: string, quote: string) => ({ type, quote, question: "?", readingA: "One way", readingB: "The other way" }) as Parameters<typeof checkFlag>[1];
+  const sentenceWith = (email: string, words: string) => email.split(/\n/).find((l) => l.includes(words))!.trim();
+  await check("no real clause in any eval set is blocked by the checks", () => {
+    const blocked = readingSets.flatMap((c) => c.truth.filter((t) => !typeIsOpen(c.email, t)).map((t) => `${c.id}: ${t}`));
+    assert.deepEqual(blocked, []);
+  });
+  await check("wording that settles the question drops the flag", () => {
+    const settled: [string, string, string][] = [
+      ["recoup-explicit-0", "recoup_vs_cap", "included in the expense cap"],
+      ["recoup-explicit-1", "recoup_vs_cap", "in addition to the expense cap"],
+      ["door-explicit-0", "door_fees", "after ticketing fees"],
+      ["new-clear-recoup", "recoup_vs_cap", "counts toward that cap"],
+      ["new-clear-door", "door_fees", "net of ticketing fees"],
+      ["new-clear-ratchet", "ratchet_scope", "rising to 85%"],
+      ["new-clear-bonus", "walkout_amount", "fixed $1,000 bonus"],
+    ];
+    for (const [id, type, words] of settled) {
+      const c = caseById(id);
+      const r = checkFlag(c.email, flag(type, sentenceWith(c.email, words)));
+      assert.ok(!r.ok && r.reason === "answered", `${id}: ${JSON.stringify(r)}`);
+    }
+  });
+  await check("a recoup or ratchet flag on a plain deal is dropped: the clause isn't there", () => {
+    const c = caseById("clean-vs-0");
+    const r1 = checkFlag(c.email, flag("recoup_vs_cap", sentenceWith(c.email, "Expenses capped")));
+    const r2 = checkFlag(c.email, flag("ratchet_scope", sentenceWith(c.email, "of net")));
+    assert.ok(!r1.ok && r1.reason === "clause" && !r2.ok && r2.reason === "clause");
+  });
+  await check("a flag about logistics is dropped; the same type about money is kept", () => {
+    const c = caseById("new-clear-logistics");
+    const r = checkFlag(c.email, flag("other", "two drink tickets each"));
+    assert.ok(!r.ok && r.reason === "money");
+    assert.ok(checkFlag(caseById("coastal-spell-real").email, flag("recoup_vs_cap", "marketing recoup of $900 against gross")).ok);
+  });
+  await check("two identical readings are dropped", () => {
+    const c = caseById("coastal-spell-real");
+    const r = checkFlag(c.email, { ...flag("recoup_vs_cap", "marketing recoup of $900 against gross"), readingA: "Inside the cap", readingB: "inside the cap." });
+    assert.ok(!r.ok && r.reason === "readings");
+  });
+  await check("the rules baseline loses nothing to the checks", () => {
+    for (const c of readingSets) {
+      const raw = rulesReadings(c.email);
+      assert.equal(verifyFlags(c.email, raw).flags.length, raw.length, c.id);
+    }
+  });
+
   console.log("\nPeople-only steps");
   await check("the payout can't be released without both approvals", () => {
     assert.throws(() => releasePayout(run));

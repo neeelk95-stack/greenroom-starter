@@ -61,11 +61,11 @@ human review. The old engine could settle 38% of these shows at all.
 
 ---
 
-## Stagehand, the Deal Ledger agent
+## Backstage, the Deal Ledger agent
 
-Stagehand is an agent that takes a show from the offer email to a settlement ready to sign,
+Backstage is an agent that takes a show from the offer email to a settlement ready to sign,
 and stops before money moves. Open `/shows/show_coastal_spell_dispute/agent`
-(or any show → **Send in Stagehand**), and `/agent` for routing, autonomy and the
+(or any show → **Send to Backstage**), and `/agent` for routing, autonomy and the
 eval scorecard.
 
 | | |
@@ -74,7 +74,8 @@ eval scorecard.
 | **What it asks about** | Commits terms only if every check passes; otherwise Ethan confirms. Messages to Drake (the artist's side) are drafts; Ethan sends them |
 | **What it can't do** | Approve a settlement, release a payout or send email. Those tools don't exist on the agent's side (`lib/agent/tools.ts`), so no prompt can make it move money |
 | **Models** | One gateway (`lib/agent/router.ts`) and a routing table (`lib/agent/routing.ts`): local Gemma 4 12B, Claude Haiku / Sonnet / Opus 5.5, GPT-6 Luna / GPT-6.1 Sol, or rules. Escalates when a check fails, falls back when a model is down, logs tokens, latency and cost per call |
-| **Evals** | `npm run eval` runs the same test sets against any models: extraction on the real deal notes and on paraphrases, two-readings detection, and the 24 disputed settlements |
+| **Flag checks** | Every two-readings flag, from any model, must pass code checks before it counts (`lib/agent/tasks/flagChecks.ts`): the quote is in the email, the two readings differ, the sentence is about pay, the clause that kind of ambiguity needs is there (a recoup question needs a cap and something taken back; a ratchet needs two rates), and the email doesn't already settle it |
+| **Evals** | `npm run eval` runs the same test sets against any models: extraction on the real deal notes and on paraphrases, two-readings detection (what the model flagged and what survived the checks, plus a set in new wording), and the 24 disputed settlements. `--suite readings` re-runs only the two-readings sets and keeps the extraction scores from the last run |
 
 The engine prices every flag. On Coastal Spell, the agent flags "expenses capped
 at $2,500, marketing recoup of $900 against gross" at booking. The engine shows
@@ -85,7 +86,12 @@ if receipts had reached the cap: the $720 the venue later conceded.
 npm run agent:test        # self-test with mock models: routing, fallback, escalation, guardrails
 npm run agent -- --show show_coastal_spell_dispute --profile local
 npm run eval -- --models rules,gemma-local,haiku-5.5,sonnet-5.5
+npm run eval -- --models rules,gemma-local --suite readings   # only the two-readings sets
 ```
+
+`data/eval/latest.json` and `report.md` are committed so the scorecard on `/agent`
+shows the last real run. `report.md` lists every false flag and every real flag
+the checks dropped.
 
 **Run it on a local model (free, private, works offline):** install
 [Ollama](https://ollama.com), `ollama pull gemma4:12b`, keep Ollama running, and

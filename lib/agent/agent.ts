@@ -80,6 +80,8 @@ export type AgentRun = {
   termChecks: TermCheck[];
   flags: PricedFlag[];
   droppedFlags: number;
+  /** Flags the model raised that failed a check, and why. Missing on runs saved before the checks existed. */
+  droppedDetails?: { type: string; quote: string; reason: string; detail: string }[];
   gate: { autoCommit: boolean; reasons: string[] };
   termsStatus: "committed_by_agent" | "waiting_for_booker" | "confirmed_by_booker";
   draft: Draft | null;
@@ -197,28 +199,35 @@ export async function runAgent(showId: string, emailText: string, emailFrom: str
     ),
   );
 
-  // 3. Flag terms with two readings; the engine prices each one.
+  // 3. Flag terms with two readings. Code checks every flag (lib/agent/tasks/flagChecks.ts);
+  //    the engine prices each one it can, and flags that move money come first.
   const rd = await runTask(findTwoReadings, { email: emailText }, opts);
-  const flags: PricedFlag[] = rd.output.flags.map((f) => {
-    const key = ENGINE_KEY[f.type];
-    return {
-      ...f,
-      label: READING_LABELS[f.type],
-      verifiedQuote: quoteAppears(emailText, f.quote),
-      price: key ? priceTwoReadings(input, key, terms.recoups) : null,
-    };
-  });
-  const kept = flags.filter((f) => f.verifiedQuote);
-  const dropped = flags.length - kept.length;
-  const priced = kept.filter((f) => f.price && (f.price.actual.impact >= 1 || (f.price.atCap?.impact ?? 0) >= 1));
+  const impact = (f: PricedFlag) => Math.max(f.price?.actual.impact ?? 0, f.price?.atCap?.impact ?? 0);
+  const kept: PricedFlag[] = rd.output.flags
+    .map((f) => {
+      const key = ENGINE_KEY[f.type];
+      return {
+        ...f,
+        label: READING_LABELS[f.type],
+        verifiedQuote: quoteAppears(emailText, f.quote),
+        price: key ? priceTwoReadings(input, key, terms.recoups) : null,
+      };
+    })
+    .sort((a, b) => impact(b) - impact(a));
+  const droppedDetails = rd.output.dropped.map((d) => ({ type: d.type, quote: d.quote, reason: d.reason, detail: d.detail }));
+  const dropped = droppedDetails.length;
+  const priced = kept.filter((f) => impact(f) >= 1);
+  const dropNote = dropped
+    ? ` ${dropped} dropped by the checks (${[...new Set(droppedDetails.map((d) => d.detail))].join("; ")}).`
+    : "";
   steps.push(
     step(
       "flag_two_readings",
       "Flag terms with two readings",
       "done",
       kept.length
-        ? `${kept.length} flagged${priced.length ? `; the engine shows ${priced.length} change${priced.length === 1 ? "s" : ""} the payout` : ""}.${dropped ? ` ${dropped} dropped: quote not found in the email.` : ""}`
-        : `No ambiguous terms found.${dropped ? ` ${dropped} dropped: quote not found in the email.` : ""}`,
+        ? `${kept.length} flagged${priced.length ? `; the engine shows ${priced.length} change${priced.length === 1 ? "s" : ""} the payout` : ""}.${dropNote}`
+        : `No ambiguous terms found.${dropNote}`,
       modelUse(rd),
     ),
   );
@@ -233,7 +242,7 @@ export async function runAgent(showId: string, emailText: string, emailFrom: str
       "commit_terms",
       "Commit terms to the deal record",
       gate.autoCommit ? "done" : "needs_person",
-      gate.autoCommit ? "Every check passed, so Stagehand committed the terms on its own." : `Waiting for Ethan: ${gate.reasons.join("; ")}.`,
+      gate.autoCommit ? "Every check passed, so Backstage committed the terms on its own." : `Waiting for Ethan: ${gate.reasons.join("; ")}.`,
     ),
   );
 
@@ -290,7 +299,7 @@ export async function runAgent(showId: string, emailText: string, emailFrom: str
   );
 
   // 8. People only.
-  steps.push(step("release_payout", "Approve the settlement and release the payout", "locked", "Locked until Ethan approves and Drake accepts. Stagehand has no tool for this."));
+  steps.push(step("release_payout", "Approve the settlement and release the payout", "locked", "Locked until Ethan approves and Drake accepts. Backstage has no tool for this."));
 
   const modelSteps = [cls, ext, rd, sm];
   const totals = modelSteps.reduce(
@@ -326,6 +335,7 @@ export async function runAgent(showId: string, emailText: string, emailFrom: str
     termChecks,
     flags: kept,
     droppedFlags: dropped,
+    droppedDetails,
     gate,
     termsStatus: gate.autoCommit ? "committed_by_agent" : "waiting_for_booker",
     draft,

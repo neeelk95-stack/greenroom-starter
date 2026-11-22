@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
-import { AGENT_NAME } from "@/components/agent/Stagehand";
+import { AGENT_NAME } from "@/components/agent/Backstage";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { PlainBadge } from "@/components/ui/badge";
 import { AUTONOMY, AUTONOMY_LABEL } from "@/lib/agent/policy";
@@ -13,15 +13,18 @@ import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
+type ReadingsScore = { recall: number; falseFlagRateOnClear: number; caught?: number; positives?: number; clearFlagged?: number; clear?: number };
+
 type Scorecard = {
   generatedAt: string;
-  cases: { extract: number; readings: number; disputed: number; disputedWithClause: number };
+  cases: { extract: number; readings: number; readingsNew?: number; disputed: number; disputedWithClause: number };
   gates: { extractFieldAccuracy: number; citationsVerified: number; readingsRecall: number; falseFlagRateOnClear: number };
   results: {
     model: string;
     label: string;
     extract: { fieldAccuracy: number; citationsVerified: number; p50ms: number; p95ms: number; costPer100: number; bySuite: Record<string, number> } | null;
-    readings: { recall: number; precision: number; falseFlagRateOnClear: number; p50ms: number; costPer100: number } | null;
+    readings: (ReadingsScore & { precision: number; p50ms: number; costPer100: number; beforeChecks?: ReadingsScore; ranAt?: string }) | null;
+    readingsNew?: (ReadingsScore & { beforeChecks?: ReadingsScore }) | null;
     disputed: { recall: number; positives: number } | null;
   }[];
 };
@@ -197,7 +200,7 @@ export default async function AgentOverviewPage() {
           <CardTitle>Eval scorecard</CardTitle>
           <CardDescription>
             {card
-              ? `Run ${new Date(card.generatedAt).toLocaleString("en-US")}. ${card.cases.extract} extraction cases (half the real deal notes, half paraphrased), ${card.cases.readings} two-readings cases, ${card.cases.disputed} disputed settlements (${card.cases.disputedWithClause} have a clause the engine or the text can verify). Each model runs alone, with no routing.`
+              ? `Updated ${new Date(card.generatedAt).toLocaleString("en-US")}. ${card.cases.extract} extraction cases (half the real deal notes, half paraphrased), ${card.cases.readings} two-readings cases${card.cases.readingsNew ? ` (plus ${card.cases.readingsNew} in new wording)` : ""}, ${card.cases.disputed} disputed settlements (${card.cases.disputedWithClause} have a clause the engine or the text can verify). Each model runs alone, with no routing.`
               : "No scorecard yet. Run npm run eval."}
           </CardDescription>
         </CardHeader>
@@ -233,6 +236,40 @@ export default async function AgentOverviewPage() {
                 ))}
               </tbody>
             </table>
+            {card.results.some((r) => r.readings?.beforeChecks) && (
+              <div className="mt-4">
+                <div className="text-[11.5px] font-medium text-ink-700 mb-1">Two readings: what the model flagged, and what survived the checks</div>
+                <table className="w-full text-[12.5px]">
+                  <thead>
+                    <tr className="text-left text-ink-400 text-[10.5px] uppercase tracking-wide">
+                      <th className="py-1.5 pr-3 font-medium">Model</th>
+                      <th className="py-1.5 pr-3 font-medium">Recall: model → checked</th>
+                      <th className="py-1.5 pr-3 font-medium">False flags: model → checked</th>
+                      <th className="py-1.5 pr-3 font-medium">New wording: recall</th>
+                      <th className="py-1.5 font-medium">New wording: false flags</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {card.results
+                      .filter((r) => r.readings?.beforeChecks)
+                      .map((r) => (
+                        <tr key={r.model} className="border-t border-ink-100 tabular">
+                          <td className="py-2 pr-3 text-ink-900 whitespace-nowrap">{r.label}</td>
+                          <td className="py-2 pr-3 text-ink-600">
+                            {pct(r.readings!.beforeChecks!.recall)} → <Gate ok={r.readings!.recall >= card.gates.readingsRecall}>{pct(r.readings!.recall)}</Gate>
+                          </td>
+                          <td className="py-2 pr-3 text-ink-600">
+                            {pct(r.readings!.beforeChecks!.falseFlagRateOnClear)} →{" "}
+                            <Gate ok={r.readings!.falseFlagRateOnClear <= card.gates.falseFlagRateOnClear}>{pct(r.readings!.falseFlagRateOnClear)}</Gate>
+                          </td>
+                          <td className="py-2 pr-3">{r.readingsNew ? <Gate ok={r.readingsNew.recall >= card.gates.readingsRecall}>{pct(r.readingsNew.recall)}</Gate> : "—"}</td>
+                          <td className="py-2">{r.readingsNew ? <Gate ok={r.readingsNew.falseFlagRateOnClear <= card.gates.falseFlagRateOnClear}>{pct(r.readingsNew.falseFlagRateOnClear)}</Gate> : "—"}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
             <div className="mt-3 text-[11.5px] text-ink-500">
               Gates (in green when met): field accuracy ≥ {pct(card.gates.extractFieldAccuracy)}, citations {pct(card.gates.citationsVerified)}, two-readings recall ≥ {pct(card.gates.readingsRecall)}, false flags on clear emails ≤ {pct(card.gates.falseFlagRateOnClear)}. Refresh with{" "}
               <span className="font-mono">npm run eval -- --models rules,gemma-local,haiku-5.5,sonnet-5.5</span>.

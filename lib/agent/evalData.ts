@@ -4,6 +4,9 @@
  *  - extract-real:        the deal notes as written, wrapped as an email. Truth = the structured deal record.
  *  - extract-paraphrased: the same deals written in different words, to test generalization.
  *  - readings:            emails with known two-reading clauses (and explicit, unambiguous versions as negatives).
+ *  - readings-new:        the same kinds of clause in new wording, written after the flag checks, to see
+ *                         whether the prompt and checks are keyed to the first set's phrasing. Same
+ *                         author, so not a blind test.
  *  - disputed-real:       the 24 disputed settlements' deal notes. Truth = what the engine can verify.
  */
 
@@ -25,7 +28,7 @@ export type TruthTerms = {
 };
 
 export type ExtractCase = { id: string; suite: "extract-real" | "extract-paraphrased"; email: string; truth: TruthTerms };
-export type ReadingsCase = { id: string; suite: "readings" | "disputed-real"; email: string; truth: ReadingType[]; note?: string };
+export type ReadingsCase = { id: string; suite: "readings" | "readings-new" | "disputed-real"; email: string; truth: ReadingType[]; note?: string };
 
 function rng(seed: number) {
   let a = seed >>> 0;
@@ -237,6 +240,31 @@ export async function buildReadingsCases(seed = 11): Promise<ReadingsCase[]> {
     "the real clause behind the Coastal Spell dispute",
   );
   return cases;
+}
+
+/** New wording for every kind of clause, plus clear emails that tempt a false flag. */
+export function buildNewWordingCases(): ReadingsCase[] {
+  const c = (id: string, artist: string, body: string, truth: ReadingType[], note?: string): ReadingsCase => ({
+    id: `new-${id}`,
+    suite: "readings-new",
+    email: wrap(artist, body),
+    truth,
+    note,
+  });
+  return [
+    c("recoup", "Low Tide Choir", "Guarantee $3,000 or 85% of net, whichever is higher. Production costs not to exceed $1,800. The venue takes back $500 for Instagram and print ads.", ["recoup_vs_cap"]),
+    c("door", "Parlor Ghosts", "Straight door: the artist walks with the gate receipts less production costs (max $700).", ["door_fees"]),
+    c("ratchet", "Juniper Static", "$2,200 vs 85% of net after expenses, expenses capped at $1,100. Bumps to 90% if we clear 300 paid.", ["ratchet_scope"]),
+    c("walkout", "Velvet Arcade", "$4,000 vs 80% of net after expenses, expenses capped at $2,000. Anything the show grosses beyond $12,000 is theirs on top.", ["walkout_amount"]),
+    c("changed", "Marrow Lane", "$3,800 vs 80% of net after expenses, expenses capped at $1,500. Heads up, we revised the deal Tuesday: the guarantee is $4,200 now, not $3,800.", ["changed_after_booking"]),
+    c("missing", "Saint Halcyon", "$2,600 vs 80% of net after expenses, expenses capped at $1,300. Merch and bonus terms same as their last run here.", ["missing_terms"]),
+    c("clear-recoup", "Paper Comets", "$3,000 vs 80% of net after expenses. Expenses capped at $1,500, and the $400 ad spend counts toward that cap.", [], "settled: should not be flagged"),
+    c("clear-door", "Night Swimmers", "Door deal: the artist gets ticket sales net of ticketing fees, less expenses capped at $900.", [], "settled: should not be flagged"),
+    c("clear-ratchet", "Hollow Pines", "$2,500 vs 80% of net after expenses, expenses capped at $1,200, rising to 85% of all net once we pass 350 tickets.", [], "settled: should not be flagged"),
+    c("clear-bonus", "Glass Harbor", "$4,500 vs 80% of net after expenses, expenses capped at $2,000. Plus a fixed $1,000 bonus if gross passes $15,000.", [], "settled: should not be flagged"),
+    c("clear-logistics", "Tin Lanterns", "$2,500 flat guarantee. The artist brings their own engineer; we provide backline and two drink tickets each.", [], "clear deal with logistics"),
+    c("clear-deposit", "Ivory Static", "$3,500 vs 80% of net after expenses, whichever is greater. Expenses capped at $1,200. Half the guarantee is paid as a deposit 30 days out.", [], "clear deal with payment timing"),
+  ];
 }
 
 const KEY_TO_TYPE: Record<string, ReadingType | undefined> = {
