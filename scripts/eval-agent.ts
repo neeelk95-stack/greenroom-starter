@@ -15,6 +15,7 @@
  * that suite's numbers and keeps the rest from the previous run, with dates.
  */
 
+import "../lib/loadEnv";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { client } from "../db/index";
@@ -36,10 +37,11 @@ const pctile = (xs: number[], p: number) => {
   return s[Math.min(s.length - 1, Math.floor((p / 100) * s.length))];
 };
 
-type Usage = { latencies: number[]; inputTokens: number; outputTokens: number; costUsd: number; failures: number };
-const newUsage = (): Usage => ({ latencies: [], inputTokens: 0, outputTokens: 0, costUsd: 0, failures: 0 });
+type Usage = { latencies: number[]; inputTokens: number; outputTokens: number; costUsd: number; failures: number; calls: number; firstError?: string };
+const newUsage = (): Usage => ({ latencies: [], inputTokens: 0, outputTokens: 0, costUsd: 0, failures: 0, calls: 0 });
 
 async function runOne<I, O>(def: Parameters<typeof runTask<I, O>>[0], input: I, model: ModelKey, u: Usage): Promise<O | null> {
+  u.calls++;
   try {
     const r: TaskRun<O> = await runTask(def, input, { profile: "rules", onlyModel: model });
     const a = r.attempts[r.attempts.length - 1];
@@ -49,11 +51,14 @@ async function runOne<I, O>(def: Parameters<typeof runTask<I, O>>[0], input: I, 
     u.costUsd += r.totals.costUsd;
     if (a.status === "error" || a.status === "skipped") {
       u.failures++;
+      u.firstError ??= a.reason;
       return null;
     }
     return r.output;
-  } catch {
+  } catch (err) {
     u.failures++;
+    const e = err as Error & { attempts?: { reason?: string }[] };
+    u.firstError ??= e.attempts?.find((x) => x.reason)?.reason ?? e.message;
     return null;
   }
 }
@@ -222,8 +227,13 @@ async function main() {
     const rd = readingCases.length ? await evalReadings(readingCases, m) : null;
     const nw = newWording.length ? await evalReadings(newWording, m) : null;
     const dp = disputed.length ? await evalReadings(disputed, m) : null;
-    const unreachable = [ex?.usage, rd?.usage, nw?.usage, dp?.usage].every((u) => !u || u.failures >= (u.latencies.length || 1));
+    const usages = [ex?.usage, rd?.usage, nw?.usage, dp?.usage].filter((u): u is Usage => !!u);
+    const unreachable = usages.every((u) => u.failures >= (u.calls || 1));
+    const failed = usages.reduce((s, u) => s + u.failures, 0);
+    const calls = usages.reduce((s, u) => s + u.calls, 0);
+    const firstError = usages.find((u) => u.firstError)?.firstError;
     console.log(unreachable && m !== "rules" ? "not reachable (skipped)" : "done");
+    if (failed && m !== "rules") console.log(`    ${failed} of ${calls} calls failed. First error: ${(firstError ?? "unknown").slice(0, 240)}`);
     if (unreachable && m !== "rules") continue;
     const readingsSection = (r: NonNullable<typeof rd>, count: number) => {
       const { usage, ...rest } = r;
@@ -252,7 +262,7 @@ async function main() {
   });
   await fs.writeFile(file, JSON.stringify(report, null, 2));
 
-  type R = { recall: number; falseFlagRateOnClear: number; caught?: number; positives?: number; clearFlagged?: number; clear?: number; beforeChecks?: { recall: number; falseFlagRateOnClear: number; caught?: number; positives?: number; clearFlagged?: number; clear?: number }; falseFlags?: FlagNote[]; droppedTruePositives?: FlagNote[]; ranAt?: string };
+  type R = { recall: number; falseFlagRateOnClear: number; p50ms?: number; p95ms?: number; costPer100?: number; caught?: number; positives?: number; clearFlagged?: number; clear?: number; beforeChecks?: { recall: number; falseFlagRateOnClear: number; caught?: number; positives?: number; clearFlagged?: number; clear?: number }; falseFlags?: FlagNote[]; droppedTruePositives?: FlagNote[]; ranAt?: string };
   type E = { fieldAccuracy: number; citationsVerified: number; p50ms: number; p95ms: number; costPer100: number; misses: string[]; ranAt?: string };
   const day = (iso?: string) => (iso ? iso.slice(0, 10) : "");
   const frac = (a?: number, b?: number) => (a != null && b != null ? ` (${a} of ${b})` : "");
@@ -271,15 +281,15 @@ async function main() {
 
   lines.push(``, `## Two readings: the model, then the checks`, ``);
   lines.push(`"Model" counts every flag whose quote is in the email. "After checks" is what the agent acts on (lib/agent/tasks/flagChecks.ts).`, ``);
-  lines.push(`| Model | Recall: model → after checks | False flags on clear: model → after checks | New wording: recall | New wording: false flags | True flags the checks dropped | Run |`);
-  lines.push(`|---|---|---|---|---|---|---|`);
+  lines.push(`| Model | Recall: model → after checks | False flags on clear: model → after checks | New wording: recall | New wording: false flags | True flags the checks dropped | p50 / p95 per case | Cost per 100 cases | Run |`);
+  lines.push(`|---|---|---|---|---|---|---|---|---|`);
   for (const r of report.results) {
     const rd = r.readings as R | null, nw = r.readingsNew as R | null, dp = r.disputed as R | null;
     if (!rd) continue;
     const b = rd.beforeChecks;
     const lost = (rd.droppedTruePositives?.length ?? 0) + (nw?.droppedTruePositives?.length ?? 0) + (dp?.droppedTruePositives?.length ?? 0);
     lines.push(
-      `| ${r.label} | ${b ? `${fmtPct(b.recall)} → ` : ""}${fmtPct(rd.recall)} | ${b ? `${fmtPct(b.falseFlagRateOnClear)}${frac(b.clearFlagged, b.clear)} → ` : ""}${fmtPct(rd.falseFlagRateOnClear)}${frac(rd.clearFlagged, rd.clear)} | ${nw ? fmtPct(nw.recall) + frac(nw.caught, nw.positives) : "—"} | ${nw ? fmtPct(nw.falseFlagRateOnClear) + frac(nw.clearFlagged, nw.clear) : "—"} | ${b ? lost : "—"} | ${day(rd.ranAt)} |`,
+      `| ${r.label} | ${b ? `${fmtPct(b.recall)} → ` : ""}${fmtPct(rd.recall)} | ${b ? `${fmtPct(b.falseFlagRateOnClear)}${frac(b.clearFlagged, b.clear)} → ` : ""}${fmtPct(rd.falseFlagRateOnClear)}${frac(rd.clearFlagged, rd.clear)} | ${nw ? fmtPct(nw.recall) + frac(nw.caught, nw.positives) : "—"} | ${nw ? fmtPct(nw.falseFlagRateOnClear) + frac(nw.clearFlagged, nw.clear) : "—"} | ${b ? lost : "—"} | ${rd.p50ms != null ? `${(rd.p50ms / 1000).toFixed(1)} / ${((rd.p95ms ?? 0) / 1000).toFixed(1)} s` : "—"} | ${rd.costPer100 != null ? `$${rd.costPer100.toFixed(4)}` : "—"} | ${day(rd.ranAt)} |`,
     );
   }
   for (const r of report.results) {

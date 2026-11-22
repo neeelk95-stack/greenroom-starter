@@ -87,7 +87,14 @@ npm run agent:test        # self-test with mock models: routing, fallback, escal
 npm run agent -- --show show_coastal_spell_dispute --profile local
 npm run eval -- --models rules,gemma-local,haiku-5.5,sonnet-5.5
 npm run eval -- --models rules,gemma-local --suite readings   # only the two-readings sets
+npm run models:check -- --models haiku-5.5,sonnet-5.5         # one tiny call each: key, model name, credits
+npm run eval -- --models haiku-5.5 --n 10                      # Haiku on every suite
+npm run eval -- --models sonnet-5.5 --suite readings           # Sonnet only on the reasoning step
 ```
+
+Each run adds its models to the same scorecard, so the Haiku, Sonnet, Gemma and rules rows sit side by side.
+Rate limits and overloads (429/529) are retried with backoff; a bad key or an empty balance fails at once
+and the eval prints the API's message.
 
 `data/eval/latest.json` and `report.md` are committed so the scorecard on `/agent`
 shows the last real run. `report.md` lists every false flag and every real flag

@@ -267,6 +267,64 @@ async function main() {
     }
   });
 
+  console.log("\nCloud API handling");
+  const { parseEnv } = await import("../lib/loadEnv");
+  const { callModel } = await import("../lib/agent/providers");
+  await check(".env.local parsing: comments, quotes and export are handled", () => {
+    const env = parseEnv('# key\nANTHROPIC_API_KEY="sk-test"\nexport AGENT_PROFILE=haiku # inline\nEMPTY=\nbad line');
+    assert.deepEqual(env, { ANTHROPIC_API_KEY: "sk-test", AGENT_PROFILE: "haiku", EMPTY: "" });
+  });
+  const flaky = async (statuses: number[]) => {
+    const seen: number[] = [];
+    const srv = http.createServer((req, res) => {
+      req.resume();
+      req.on("end", () => {
+        const status = statuses[Math.min(seen.length, statuses.length - 1)];
+        seen.push(status);
+        res.statusCode = status;
+        if (status !== 200) res.setHeader("retry-after", "0");
+        res.setHeader("content-type", "application/json");
+        res.end(status === 200
+          ? JSON.stringify({ content: [{ type: "text", text: '{"ok":true}' }], usage: { input_tokens: 12, output_tokens: 4 } })
+          : JSON.stringify({ type: "error", error: { message: `status ${status}` } }));
+      });
+    });
+    await new Promise<void>((r) => srv.listen(0, "127.0.0.1", r));
+    return { url: `http://127.0.0.1:${(srv.address() as AddressInfo).port}`, seen, close: () => srv.close() };
+  };
+  const withAnthropic = async (url: string, fn: () => Promise<void>) => {
+    const saved = { base: process.env.ANTHROPIC_BASE_URL, key: process.env.ANTHROPIC_API_KEY };
+    process.env.ANTHROPIC_BASE_URL = url;
+    process.env.ANTHROPIC_API_KEY = "test-key";
+    try {
+      await fn();
+    } finally {
+      process.env.ANTHROPIC_BASE_URL = saved.base;
+      if (saved.key === undefined) delete process.env.ANTHROPIC_API_KEY;
+      else process.env.ANTHROPIC_API_KEY = saved.key;
+    }
+  };
+  await check("a rate limit (429) or overload (529) is retried, then succeeds", async () => {
+    const srv = await flaky([429, 529, 200]);
+    await withAnthropic(srv.url, async () => {
+      const r = await callModel("haiku-5.5", { system: "s", messages: [{ role: "user", content: "u" }], maxTokens: 10 });
+      assert.equal(r.text, '{"ok":true}');
+      assert.deepEqual(srv.seen, [429, 529, 200]);
+    });
+    srv.close();
+  });
+  await check("a bad key (401) fails at once with the API's message", async () => {
+    const srv = await flaky([401]);
+    await withAnthropic(srv.url, async () => {
+      await assert.rejects(
+        callModel("haiku-5.5", { system: "s", messages: [{ role: "user", content: "u" }], maxTokens: 10 }),
+        /HTTP 401/,
+      );
+      assert.equal(srv.seen.length, 1);
+    });
+    srv.close();
+  });
+
   console.log("\nPeople-only steps");
   await check("the payout can't be released without both approvals", () => {
     assert.throws(() => releasePayout(run));

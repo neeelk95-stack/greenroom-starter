@@ -36,21 +36,44 @@ function isOllamaNative(): boolean {
   return /:11434(\/|$)/.test(localBaseUrl());
 }
 
+// Rate limits (429), overload (529) and brief server errors are normal on a new API
+// account; retry those with backoff. Bad keys, bad model names and empty credit
+// balances (400/401/403/404) fail at once, with the API's own message.
+const RETRY_STATUS = new Set([429, 500, 502, 503, 504, 529]);
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 async function postJson(url: string, headers: Record<string, string>, body: unknown, timeoutMs: number) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "content-type": "application/json", ...headers },
-      body: JSON.stringify(body),
-      signal: controller.signal,
-    });
-    const text = await res.text();
-    if (!res.ok) throw new Error(`HTTP ${res.status}: ${text.slice(0, 300)}`);
-    return JSON.parse(text);
-  } finally {
-    clearTimeout(timer);
+  const maxRetries = Number(process.env.MODEL_MAX_RETRIES ?? 3);
+  for (let attempt = 0; ; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        method: "POST",
+        headers: { "content-type": "application/json", ...headers },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+    } catch (err) {
+      clearTimeout(timer);
+      // A timeout is final; a dropped connection gets the same retries as a 5xx.
+      if ((err as Error).name === "AbortError" || attempt >= maxRetries) throw err;
+      await sleep(2 ** attempt * 1000 + Math.random() * 500);
+      continue;
+    }
+    try {
+      const text = await res.text();
+      if (res.ok) return JSON.parse(text);
+      if (RETRY_STATUS.has(res.status) && attempt < maxRetries) {
+        const after = Number(res.headers.get("retry-after"));
+        await sleep(after > 0 ? after * 1000 : 2 ** attempt * 1000 + Math.random() * 500);
+        continue;
+      }
+      throw new Error(`HTTP ${res.status}: ${text.slice(0, 300)}`);
+    } finally {
+      clearTimeout(timer);
+    }
   }
 }
 

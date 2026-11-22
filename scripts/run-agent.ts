@@ -6,6 +6,7 @@
  *   npm run agent -- --show show_0007 --profile mixed --ask "What if the walkout is 100% of the overage?"
  */
 
+import "../lib/loadEnv";
 import { runAgent, askAssistant } from "../lib/agent/agent";
 import { sampleOfferEmail } from "../lib/agent/offerEmails";
 import { getShow } from "../lib/agent/tools";

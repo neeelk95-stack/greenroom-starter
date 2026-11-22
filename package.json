@@ -14,7 +14,8 @@
     "replay": "tsx scripts/replay-settlements.ts",
     "agent": "tsx scripts/run-agent.ts",
     "agent:test": "tsx scripts/test-agent.ts",
-    "eval": "tsx scripts/eval-agent.ts"
+    "eval": "tsx scripts/eval-agent.ts",
+    "models:check": "tsx scripts/check-models.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.17.3",
