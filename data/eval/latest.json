@@ -1,8 +1,9 @@
 {
-  "generatedAt": "2026-11-22T01:09:08.663Z",
+  "generatedAt": "2026-11-22T18:48:58.220Z",
   "cases": {
-    "extract": 50,
+    "extract": 20,
     "readings": 29,
+    "readingsNew": 12,
     "disputed": 24,
     "disputedWithClause": 9
   },
@@ -18,39 +19,53 @@
       "label": "Rules (no AI)",
       "local": true,
       "extract": {
-        "fieldAccuracy": 0.9071729957805907,
-        "dealsFullyCorrect": 0.66,
+        "fieldAccuracy": 0.8736842105263158,
+        "dealsFullyCorrect": 0.65,
         "citationsVerified": 1,
         "bySuite": {
           "extract-real": 1,
-          "extract-paraphrased": 0.824
+          "extract-paraphrased": 0.76
         },
         "misses": [
-          "para:show_0052 expenseCap: expected 850, got null",
-          "para:show_0418 hospitalityCap: expected 600, got null",
-          "para:show_0386 dealType: expected vs, got percentage_of_net",
-          "para:show_0386 guaranteeAmount: expected 3728, got null",
-          "para:show_0386 expenseCap: expected 1850, got null",
-          "para:show_0386 hospitalityCap: expected 500, got null",
-          "para:show_0297 expenseCap: expected 1200, got null",
-          "para:show_0370 hospitalityCap: expected 600, got null",
-          "para:show_0161 guaranteeAmount: expected 1113, got null",
-          "para:show_0288 guaranteeAmount: expected 648, got null",
-          "para:show_0019 guaranteeAmount: expected 1116, got null",
-          "para:show_0341 expenseCap: expected 2800, got null"
+          "para:show_0237 dealType: expected vs, got percentage_of_net",
+          "para:show_0237 guaranteeAmount: expected 2074, got null",
+          "para:show_0237 hospitalityCap: expected 400, got null",
+          "para:show_0181 dealType: expected vs, got percentage_of_net",
+          "para:show_0181 guaranteeAmount: expected 1541, got null",
+          "para:show_0181 expenseCap: expected 750, got null",
+          "para:show_0492 guaranteeAmount: expected 2502, got null",
+          "para:show_0324 hospitalityCap: expected 500, got null",
+          "para:show_0293 hospitalityCap: expected 300, got null",
+          "para:show_0306 expenseCap: expected 600, got null",
+          "para:show_0306 hospitalityCap: expected 300, got null",
+          "para:show_0511 hospitalityCap: expected 300, got null"
         ],
         "p50ms": 0,
-        "p95ms": 1,
+        "p95ms": 3,
         "inputTokens": 0,
         "outputTokens": 0,
         "costUsd": 0,
         "costPer100": 0,
-        "failures": 0
+        "failures": 0,
+        "ranAt": "2026-11-22T05:21:33.252Z"
       },
       "readings": {
         "recall": 0.5263157894736842,
         "precision": 1,
         "falseFlagRateOnClear": 0,
+        "caught": 10,
+        "positives": 19,
+        "clearFlagged": 0,
+        "clear": 10,
+        "beforeChecks": {
+          "recall": 0.5263157894736842,
+          "precision": 1,
+          "falseFlagRateOnClear": 0,
+          "caught": 10,
+          "positives": 19,
+          "clearFlagged": 0,
+          "clear": 10
+        },
         "perType": {
           "recoup_vs_cap": {
             "tp": 3,
@@ -99,13 +114,89 @@
           "missing-1: missed missing_terms",
           "missing-2: missed missing_terms"
         ],
+        "falseFlags": [],
+        "droppedTruePositives": [],
+        "p50ms": 0,
+        "p95ms": 1,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "costUsd": 0,
+        "costPer100": 0,
+        "failures": 0,
+        "ranAt": "2026-11-22T18:48:58.220Z"
+      },
+      "readingsNew": {
+        "recall": 0,
+        "precision": 1,
+        "falseFlagRateOnClear": 0,
+        "caught": 0,
+        "positives": 6,
+        "clearFlagged": 0,
+        "clear": 6,
+        "beforeChecks": {
+          "recall": 0,
+          "precision": 1,
+          "falseFlagRateOnClear": 0,
+          "caught": 0,
+          "positives": 6,
+          "clearFlagged": 0,
+          "clear": 6
+        },
+        "perType": {
+          "recoup_vs_cap": {
+            "tp": 0,
+            "fn": 1,
+            "fp": 0
+          },
+          "door_fees": {
+            "tp": 0,
+            "fn": 1,
+            "fp": 0
+          },
+          "ratchet_scope": {
+            "tp": 0,
+            "fn": 1,
+            "fp": 0
+          },
+          "walkout_amount": {
+            "tp": 0,
+            "fn": 1,
+            "fp": 0
+          },
+          "changed_after_booking": {
+            "tp": 0,
+            "fn": 1,
+            "fp": 0
+          },
+          "missing_terms": {
+            "tp": 0,
+            "fn": 1,
+            "fp": 0
+          },
+          "other": {
+            "tp": 0,
+            "fn": 0,
+            "fp": 0
+          }
+        },
+        "misses": [
+          "new-recoup: missed recoup_vs_cap",
+          "new-door: missed door_fees",
+          "new-ratchet: missed ratchet_scope",
+          "new-walkout: missed walkout_amount",
+          "new-changed: missed changed_after_booking",
+          "new-missing: missed missing_terms"
+        ],
+        "falseFlags": [],
+        "droppedTruePositives": [],
         "p50ms": 0,
         "p95ms": 0,
         "inputTokens": 0,
         "outputTokens": 0,
         "costUsd": 0,
         "costPer100": 0,
-        "failures": 0
+        "failures": 0,
+        "ranAt": "2026-11-22T18:48:58.220Z"
       },
       "disputed": {
         "recall": 0.9,
@@ -114,13 +205,550 @@
         "misses": [
           "disputed:show_0069: missed walkout_amount"
         ],
+        "beforeChecks": {
+          "recall": 0.9,
+          "precision": 1,
+          "falseFlagRateOnClear": 0,
+          "caught": 9,
+          "positives": 10,
+          "clearFlagged": 0,
+          "clear": 15
+        },
+        "droppedTruePositives": [],
         "p50ms": 0,
-        "p95ms": 0,
+        "p95ms": 1,
         "inputTokens": 0,
         "outputTokens": 0,
         "costUsd": 0,
         "costPer100": 0,
-        "failures": 0
+        "failures": 0,
+        "ranAt": "2026-11-22T18:48:58.220Z"
+      }
+    },
+    {
+      "model": "gemma-local",
+      "label": "Gemma 4 12B (local)",
+      "local": true,
+      "extract": {
+        "fieldAccuracy": 1,
+        "dealsFullyCorrect": 1,
+        "citationsVerified": 1,
+        "bySuite": {
+          "extract-real": 1,
+          "extract-paraphrased": 1
+        },
+        "misses": [],
+        "p50ms": 18564,
+        "p95ms": 31587,
+        "inputTokens": 9671,
+        "outputTokens": 2838,
+        "costUsd": 0,
+        "costPer100": 0,
+        "failures": 0,
+        "ranAt": "2026-11-22T05:21:33.252Z"
+      },
+      "readings": {
+        "recall": 0.8947368421052632,
+        "caught": 17,
+        "positives": 19,
+        "falseFlagRateOnClear": 0.6,
+        "clearFlagged": 6,
+        "clear": 10,
+        "costPer100": 0,
+        "ranAt": "2026-11-21T12:00:00.000Z",
+        "note": "first run (Nov 21), before the code checks; entered from its printed results"
+      },
+      "readingsNew": null,
+      "disputed": {
+        "recall": 1,
+        "ranAt": "2026-11-21T12:00:00.000Z",
+        "note": "first run (Nov 21), before the code checks; entered from its printed results"
+      }
+    },
+    {
+      "model": "sonnet-5.5",
+      "label": "Claude Sonnet 5.5",
+      "local": false,
+      "extract": null,
+      "readings": {
+        "recall": 0.9473684210526315,
+        "precision": 0.9,
+        "falseFlagRateOnClear": 0.1,
+        "caught": 18,
+        "positives": 19,
+        "clearFlagged": 1,
+        "clear": 10,
+        "beforeChecks": {
+          "recall": 0.9473684210526315,
+          "precision": 0.782608695652174,
+          "falseFlagRateOnClear": 0.1,
+          "caught": 18,
+          "positives": 19,
+          "clearFlagged": 1,
+          "clear": 10
+        },
+        "perType": {
+          "recoup_vs_cap": {
+            "tp": 4,
+            "fn": 0,
+            "fp": 0
+          },
+          "door_fees": {
+            "tp": 3,
+            "fn": 0,
+            "fp": 0
+          },
+          "ratchet_scope": {
+            "tp": 3,
+            "fn": 0,
+            "fp": 0
+          },
+          "walkout_amount": {
+            "tp": 2,
+            "fn": 1,
+            "fp": 0
+          },
+          "changed_after_booking": {
+            "tp": 3,
+            "fn": 0,
+            "fp": 0
+          },
+          "missing_terms": {
+            "tp": 3,
+            "fn": 0,
+            "fp": 0
+          },
+          "other": {
+            "tp": 0,
+            "fn": 0,
+            "fp": 2
+          }
+        },
+        "misses": [
+          "door-explicit-0: false flag other",
+          "door-2: false flag other",
+          "walkout-2: missed walkout_amount"
+        ],
+        "falseFlags": [
+          {
+            "case": "door-explicit-0",
+            "type": "other",
+            "quote": "ticket revenue after ticketing fees and expenses (capped $1,000)"
+          },
+          {
+            "case": "door-2",
+            "type": "other",
+            "quote": "Artist takes the box office less show expenses, capped at $800."
+          },
+          {
+            "case": "walkout-2",
+            "type": "door_fees",
+            "quote": "85% of net after expenses",
+            "dropped": "needs a deal paid from the door or ticket revenue"
+          },
+          {
+            "case": "ratchet-2",
+            "type": "door_fees",
+            "quote": "80% of net after expenses",
+            "dropped": "needs a deal paid from the door or ticket revenue"
+          },
+          {
+            "case": "changed-0",
+            "type": "missing_terms",
+            "quote": "the bonus threshold is now $6,000",
+            "dropped": "needs a reference to terms stated somewhere else"
+          }
+        ],
+        "droppedTruePositives": [],
+        "p50ms": 4203,
+        "p95ms": 7580,
+        "inputTokens": 25532,
+        "outputTokens": 16059,
+        "costUsd": 0.211654,
+        "costPer100": 0.7298,
+        "failures": 0,
+        "ranAt": "2026-11-22T17:37:35.634Z"
+      },
+      "readingsNew": {
+        "recall": 0.6666666666666666,
+        "precision": 1,
+        "falseFlagRateOnClear": 0,
+        "caught": 4,
+        "positives": 6,
+        "clearFlagged": 0,
+        "clear": 6,
+        "beforeChecks": {
+          "recall": 0.6666666666666666,
+          "precision": 1,
+          "falseFlagRateOnClear": 0,
+          "caught": 4,
+          "positives": 6,
+          "clearFlagged": 0,
+          "clear": 6
+        },
+        "perType": {
+          "recoup_vs_cap": {
+            "tp": 1,
+            "fn": 0,
+            "fp": 0
+          },
+          "door_fees": {
+            "tp": 1,
+            "fn": 0,
+            "fp": 0
+          },
+          "ratchet_scope": {
+            "tp": 1,
+            "fn": 0,
+            "fp": 0
+          },
+          "walkout_amount": {
+            "tp": 0,
+            "fn": 1,
+            "fp": 0
+          },
+          "changed_after_booking": {
+            "tp": 0,
+            "fn": 1,
+            "fp": 0
+          },
+          "missing_terms": {
+            "tp": 1,
+            "fn": 0,
+            "fp": 0
+          },
+          "other": {
+            "tp": 0,
+            "fn": 0,
+            "fp": 0
+          }
+        },
+        "misses": [
+          "new-walkout: missed walkout_amount",
+          "new-changed: missed changed_after_booking"
+        ],
+        "falseFlags": [],
+        "droppedTruePositives": [],
+        "p50ms": 3903,
+        "p95ms": 7779,
+        "inputTokens": 10586,
+        "outputTokens": 5298,
+        "costUsd": 0.074152,
+        "costPer100": 0.6179,
+        "failures": 0,
+        "ranAt": "2026-11-22T17:37:35.634Z"
+      },
+      "disputed": {
+        "recall": 0.6,
+        "precision": 0.8571428571428571,
+        "positives": 10,
+        "misses": [
+          "disputed:show_0015: missed walkout_amount",
+          "disputed:show_0015: false flag other",
+          "disputed:show_0007: missed walkout_amount",
+          "disputed:show_0007: missed changed_after_booking",
+          "disputed:show_0445: missed walkout_amount"
+        ],
+        "beforeChecks": {
+          "recall": 0.6,
+          "precision": 0.5454545454545454,
+          "falseFlagRateOnClear": 0,
+          "caught": 6,
+          "positives": 10,
+          "clearFlagged": 0,
+          "clear": 15
+        },
+        "droppedTruePositives": [],
+        "p50ms": 4334,
+        "p95ms": 8498,
+        "inputTokens": 21116,
+        "outputTokens": 13673,
+        "costUsd": 0.178962,
+        "costPer100": 0.7457,
+        "failures": 0,
+        "ranAt": "2026-11-22T17:37:35.634Z"
+      }
+    },
+    {
+      "model": "haiku-5.5",
+      "label": "Claude Haiku 5.5",
+      "local": false,
+      "extract": {
+        "fieldAccuracy": 1,
+        "dealsFullyCorrect": 1,
+        "citationsVerified": 1,
+        "bySuite": {
+          "extract-real": 1,
+          "extract-paraphrased": 1
+        },
+        "misses": [],
+        "p50ms": 2096,
+        "p95ms": 2780,
+        "inputTokens": 12950,
+        "outputTokens": 8828,
+        "costUsd": 0.005709,
+        "costPer100": 0.0285,
+        "failures": 0,
+        "ranAt": "2026-11-22T17:36:06.896Z"
+      },
+      "readings": {
+        "recall": 0.7894736842105263,
+        "precision": 0.8823529411764706,
+        "falseFlagRateOnClear": 0,
+        "caught": 15,
+        "positives": 19,
+        "clearFlagged": 0,
+        "clear": 10,
+        "beforeChecks": {
+          "recall": 0.7894736842105263,
+          "precision": 0.5769230769230769,
+          "falseFlagRateOnClear": 0.2,
+          "caught": 15,
+          "positives": 19,
+          "clearFlagged": 2,
+          "clear": 10
+        },
+        "perType": {
+          "recoup_vs_cap": {
+            "tp": 3,
+            "fn": 1,
+            "fp": 0
+          },
+          "door_fees": {
+            "tp": 3,
+            "fn": 0,
+            "fp": 1
+          },
+          "ratchet_scope": {
+            "tp": 3,
+            "fn": 0,
+            "fp": 0
+          },
+          "walkout_amount": {
+            "tp": 2,
+            "fn": 1,
+            "fp": 0
+          },
+          "changed_after_booking": {
+            "tp": 1,
+            "fn": 2,
+            "fp": 0
+          },
+          "missing_terms": {
+            "tp": 3,
+            "fn": 0,
+            "fp": 0
+          },
+          "other": {
+            "tp": 0,
+            "fn": 0,
+            "fp": 1
+          }
+        },
+        "misses": [
+          "recoup-1: false flag door_fees",
+          "door-2: false flag other",
+          "walkout-0: missed walkout_amount",
+          "changed-2: missed changed_after_booking",
+          "changed-1: missed changed_after_booking",
+          "coastal-spell-real: missed recoup_vs_cap"
+        ],
+        "falseFlags": [
+          {
+            "case": "recoup-2",
+            "type": "door_fees",
+            "quote": "75% of net after expenses, whichever greater.",
+            "dropped": "needs a deal paid from the door or ticket revenue"
+          },
+          {
+            "case": "recoup-1",
+            "type": "door_fees",
+            "quote": "75% of net after expenses"
+          },
+          {
+            "case": "recoup-explicit-1",
+            "type": "door_fees",
+            "quote": "90% of net after expenses",
+            "dropped": "needs a deal paid from the door or ticket revenue"
+          },
+          {
+            "case": "door-2",
+            "type": "other",
+            "quote": "less show expenses, capped at $800"
+          },
+          {
+            "case": "ratchet-0",
+            "type": "door_fees",
+            "quote": "90% of net after expenses",
+            "dropped": "needs a deal paid from the door or ticket revenue"
+          },
+          {
+            "case": "ratchet-1",
+            "type": "door_fees",
+            "quote": "85% of net after expenses",
+            "dropped": "needs a deal paid from the door or ticket revenue"
+          },
+          {
+            "case": "ratchet-2",
+            "type": "door_fees",
+            "quote": "80% of net after expenses",
+            "dropped": "needs a deal paid from the door or ticket revenue"
+          },
+          {
+            "case": "changed-0",
+            "type": "door_fees",
+            "quote": "85% of net after expenses, whichever greater",
+            "dropped": "needs a deal paid from the door or ticket revenue"
+          },
+          {
+            "case": "changed-1",
+            "type": "door_fees",
+            "quote": "85% of net after expenses",
+            "dropped": "needs a deal paid from the door or ticket revenue"
+          },
+          {
+            "case": "missing-0",
+            "type": "door_fees",
+            "quote": "90% of net after expenses",
+            "dropped": "needs a deal paid from the door or ticket revenue"
+          },
+          {
+            "case": "clean-vs-1",
+            "type": "door_fees",
+            "quote": "80% of net after expenses",
+            "dropped": "needs a deal paid from the door or ticket revenue"
+          }
+        ],
+        "droppedTruePositives": [],
+        "p50ms": 3377,
+        "p95ms": 5479,
+        "inputTokens": 25532,
+        "outputTokens": 19078,
+        "costUsd": 0.012092,
+        "costPer100": 0.0417,
+        "failures": 0,
+        "ranAt": "2026-11-22T17:36:06.896Z"
+      },
+      "readingsNew": {
+        "recall": 1,
+        "precision": 1,
+        "falseFlagRateOnClear": 0,
+        "caught": 6,
+        "positives": 6,
+        "clearFlagged": 0,
+        "clear": 6,
+        "beforeChecks": {
+          "recall": 1,
+          "precision": 0.6,
+          "falseFlagRateOnClear": 0.6666666666666666,
+          "caught": 6,
+          "positives": 6,
+          "clearFlagged": 4,
+          "clear": 6
+        },
+        "perType": {
+          "recoup_vs_cap": {
+            "tp": 1,
+            "fn": 0,
+            "fp": 0
+          },
+          "door_fees": {
+            "tp": 1,
+            "fn": 0,
+            "fp": 0
+          },
+          "ratchet_scope": {
+            "tp": 1,
+            "fn": 0,
+            "fp": 0
+          },
+          "walkout_amount": {
+            "tp": 1,
+            "fn": 0,
+            "fp": 0
+          },
+          "changed_after_booking": {
+            "tp": 1,
+            "fn": 0,
+            "fp": 0
+          },
+          "missing_terms": {
+            "tp": 1,
+            "fn": 0,
+            "fp": 0
+          },
+          "other": {
+            "tp": 0,
+            "fn": 0,
+            "fp": 0
+          }
+        },
+        "misses": [],
+        "falseFlags": [
+          {
+            "case": "new-clear-recoup",
+            "type": "door_fees",
+            "quote": "80% of net after expenses",
+            "dropped": "needs a deal paid from the door or ticket revenue"
+          },
+          {
+            "case": "new-clear-ratchet",
+            "type": "door_fees",
+            "quote": "80% of net after expenses",
+            "dropped": "needs a deal paid from the door or ticket revenue"
+          },
+          {
+            "case": "new-clear-bonus",
+            "type": "door_fees",
+            "quote": "80% of net after expenses",
+            "dropped": "needs a deal paid from the door or ticket revenue"
+          },
+          {
+            "case": "new-clear-deposit",
+            "type": "door_fees",
+            "quote": "80% of net after expenses",
+            "dropped": "needs a deal paid from the door or ticket revenue"
+          }
+        ],
+        "droppedTruePositives": [],
+        "p50ms": 4070,
+        "p95ms": 5377,
+        "inputTokens": 10586,
+        "outputTokens": 7428,
+        "costUsd": 0.004773,
+        "costPer100": 0.0398,
+        "failures": 0,
+        "ranAt": "2026-11-22T17:36:06.896Z"
+      },
+      "disputed": {
+        "recall": 0.6,
+        "precision": 0.8571428571428571,
+        "positives": 10,
+        "misses": [
+          "disputed:show_0015: missed walkout_amount",
+          "disputed:show_0007: missed walkout_amount",
+          "disputed:show_0007: missed changed_after_booking",
+          "disputed:show_0226: false flag other",
+          "disputed:show_0445: missed walkout_amount"
+        ],
+        "beforeChecks": {
+          "recall": 0.6,
+          "precision": 0.42857142857142855,
+          "falseFlagRateOnClear": 0.4,
+          "caught": 6,
+          "positives": 10,
+          "clearFlagged": 6,
+          "clear": 15
+        },
+        "droppedTruePositives": [],
+        "p50ms": 3673,
+        "p95ms": 5293,
+        "inputTokens": 21116,
+        "outputTokens": 15406,
+        "costUsd": 0.009815,
+        "costPer100": 0.0409,
+        "failures": 0,
+        "ranAt": "2026-11-22T17:36:06.896Z"
       }
     }
   ]
