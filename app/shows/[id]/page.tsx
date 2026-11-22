@@ -6,10 +6,9 @@ import {
   AlertCircle,
   Clock,
   TrendingUp,
-  Sparkles,
-  Bot,
 } from "lucide-react";
 import { getShowById } from "@/lib/queries";
+import { StagehandLink } from "@/components/agent/Stagehand";
 import {
   Card,
   CardContent,
@@ -121,25 +120,14 @@ export default async function ShowDetailPage({
               </span>
             </div>
           </div>
-          <div className="mt-6 shrink-0 flex flex-col gap-2 items-end">
+          <div className="mt-6 shrink-0 flex flex-col gap-2.5 w-[236px]">
             <Link href={`/shows/${show.id}/settle`}>
-              <Button variant="brand" size="lg">
+              <Button variant="brand" size="lg" className="w-full">
                 <FileSpreadsheet className="h-4 w-4" />
                 {settlement ? "View settlement" : "Settle show"}
               </Button>
             </Link>
-            <Link href={`/shows/${show.id}/deal-builder`}>
-              <Button variant="secondary" size="default">
-                <Sparkles className="h-3.5 w-3.5" />
-                Open Deal Builder
-              </Button>
-            </Link>
-            <Link href={`/shows/${show.id}/agent`}>
-              <Button variant="secondary" size="default">
-                <Bot className="h-3.5 w-3.5" />
-                Run the agent
-              </Button>
-            </Link>
+            <StagehandLink href={`/shows/${show.id}/agent`} />
           </div>
         </div>
 

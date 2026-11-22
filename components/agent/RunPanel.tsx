@@ -2,8 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Bot, Loader2, Laptop, Cloud, ScrollText } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Laptop, Cloud, ScrollText } from "lucide-react";
+import { AGENT_NAME, StagehandLabel, StagehandMark, stagehandButtonClass } from "@/components/agent/Stagehand";
 import { cn } from "@/lib/utils";
 import { runAgentAction } from "@/app/shows/[id]/agent/actions";
 
@@ -52,7 +52,7 @@ export function RunPanel({
       </div>
 
       <div>
-        <div className="eyebrow text-[10px] text-ink-500 mb-2">Which models run the agent</div>
+        <div className="eyebrow text-[10px] text-ink-500 mb-2">Which models {AGENT_NAME} runs on</div>
         <div className="grid gap-2 sm:grid-cols-2">
           {profiles.map((p) => (
             <button
@@ -77,13 +77,16 @@ export function RunPanel({
       </div>
 
       <div className="flex items-center gap-3">
-        <Button variant="brand" size="lg" onClick={run} disabled={pending}>
-          {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Bot className="h-4 w-4" />}
-          {pending ? "Agent running…" : "Run the agent"}
-        </Button>
+        <button type="button" onClick={run} disabled={pending} className={stagehandButtonClass}>
+          <StagehandMark working={pending} />
+          <StagehandLabel
+            title={pending ? `${AGENT_NAME} is working…` : `Send in ${AGENT_NAME}`}
+            subtitle={pending ? (chosen?.label ?? "") : "Reads the email, checks the terms, preps the settlement"}
+          />
+        </button>
         {pending && (
           <span className="text-[12px] text-ink-500">
-            {chosen?.local ? "On a laptop, a local model can take 20 to 90 seconds for all the steps." : "Usually a few seconds."}
+            {chosen?.local ? "On a laptop, a local model takes a couple of minutes for all the steps." : "Usually a few seconds."}
           </span>
         )}
         {error && <span className="text-[12px] text-rose-700">{error}</span>}

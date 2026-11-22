@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Bot, CircleCheck, CircleDot, LockKeyhole, PenLine, CircleMinus, CircleAlert, FileSpreadsheet, Smartphone } from "lucide-react";
+import { ArrowLeft, Sparkles, CircleCheck, CircleDot, LockKeyhole, PenLine, CircleMinus, CircleAlert, FileSpreadsheet, Smartphone } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { DealTypeBadge, PlainBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import { AskPanel } from "@/components/agent/AskPanel";
 import { ConfirmTermsButton, PayoutPanel } from "@/components/agent/PeopleActions";
 import { ModelChip, usd } from "@/components/agent/ModelChip";
 import { cn } from "@/lib/utils";
+import { AGENT_NAME } from "@/components/agent/Stagehand";
 
 export const dynamic = "force-dynamic";
 
@@ -100,7 +101,7 @@ export default async function AgentPage({ params }: { params: Promise<{ id: stri
         <div className="flex items-center gap-1.5 mb-4">
           {data.deal && <DealTypeBadge type={data.deal.dealType} />}
           <PlainBadge variant="brand">
-            <Bot className="h-3 w-3 mr-1" /> Deal Ledger agent
+            <Sparkles className="h-3 w-3 mr-1" /> {AGENT_NAME} · Deal Ledger agent
           </PlainBadge>
         </div>
         <h1 className="font-display text-[32px] sm:text-[44px] font-medium text-ink-900 leading-[1.05]" style={{ letterSpacing: "-0.02em" }}>
@@ -108,7 +109,7 @@ export default async function AgentPage({ params }: { params: Promise<{ id: stri
         </h1>
         <div className="text-[14px] text-ink-400 mt-3">{formatShowDateFull(data.show.date)}</div>
         <p className="text-[13.5px] text-ink-600 mt-4 max-w-2xl leading-relaxed">
-          The agent takes the show from the offer email to a settlement ready to sign. It acts alone on anything internal and undoable, drafts anything that leaves the building, and stops before money moves. The math is the deterministic engine; models only read and write.{" "}
+          {AGENT_NAME} takes the show from the offer email to a settlement ready to sign. It acts alone on anything internal and undoable, drafts anything that leaves the building, and stops before money moves. The math is the deterministic engine; models only read and write.{" "}
           <Link href="/agent" className="text-brand-700 hover:underline">
             Routing, autonomy and evals
           </Link>
@@ -132,7 +133,7 @@ function RunView({ run }: { run: AgentRun }) {
     <div className="space-y-6">
       <Card accent="brand">
         <CardHeader>
-          <CardTitle>What the agent did</CardTitle>
+          <CardTitle>What {AGENT_NAME} did</CardTitle>
           <CardDescription>
             Run {run.id} · {PROFILES[run.profile].label} · {new Date(run.createdAt).toLocaleString("en-US")} · {run.totals.modelCalls} model calls ·{" "}
             {run.totals.inputTokens.toLocaleString()} tokens in, {run.totals.outputTokens.toLocaleString()} out · {(run.totals.latencyMs / 1000).toFixed(1)} s · {usd(run.totals.costUsd)}
@@ -259,7 +260,7 @@ function RunView({ run }: { run: AgentRun }) {
         <Card>
           <CardHeader>
             <CardTitle>Draft to Drake</CardTitle>
-            <CardDescription>Draft only. The agent can&apos;t send email; Ethan reviews and sends it.</CardDescription>
+            <CardDescription>Draft only. {AGENT_NAME} can&apos;t send email; Ethan reviews and sends it.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="text-[12px] text-ink-500 mb-1">Subject: {run.draft.subject}</div>
@@ -324,7 +325,7 @@ function RunView({ run }: { run: AgentRun }) {
       <Card accent="rose">
         <CardHeader>
           <CardTitle>Payout: people only</CardTitle>
-          <CardDescription>The agent stops here.</CardDescription>
+          <CardDescription>{AGENT_NAME} stops here.</CardDescription>
         </CardHeader>
         <CardContent>
           <PayoutPanel

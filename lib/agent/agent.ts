@@ -233,7 +233,7 @@ export async function runAgent(showId: string, emailText: string, emailFrom: str
       "commit_terms",
       "Commit terms to the deal record",
       gate.autoCommit ? "done" : "needs_person",
-      gate.autoCommit ? "Every check passed, so the agent committed the terms on its own." : `Waiting for Ethan: ${gate.reasons.join("; ")}.`,
+      gate.autoCommit ? "Every check passed, so Stagehand committed the terms on its own." : `Waiting for Ethan: ${gate.reasons.join("; ")}.`,
     ),
   );
 
@@ -290,7 +290,7 @@ export async function runAgent(showId: string, emailText: string, emailFrom: str
   );
 
   // 8. People only.
-  steps.push(step("release_payout", "Approve the settlement and release the payout", "locked", "Locked until Ethan approves and Drake accepts. The agent has no tool for this."));
+  steps.push(step("release_payout", "Approve the settlement and release the payout", "locked", "Locked until Ethan approves and Drake accepts. Stagehand has no tool for this."));
 
   const modelSteps = [cls, ext, rd, sm];
   const totals = modelSteps.reduce(

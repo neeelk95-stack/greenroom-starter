@@ -1,7 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import Link from "next/link";
-import { Bot } from "lucide-react";
+import { Sparkles } from "lucide-react";
+import { AGENT_NAME } from "@/components/agent/Stagehand";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { PlainBadge } from "@/components/ui/badge";
 import { AUTONOMY, AUTONOMY_LABEL } from "@/lib/agent/policy";
@@ -55,10 +56,10 @@ export default async function AgentOverviewPage() {
     <div className="px-4 sm:px-12 py-8 sm:py-10 max-w-5xl space-y-6">
       <div className="mb-2">
         <PlainBadge variant="brand">
-          <Bot className="h-3 w-3 mr-1" /> Deal Ledger agent
+          <Sparkles className="h-3 w-3 mr-1" /> {AGENT_NAME} · Deal Ledger agent
         </PlainBadge>
         <h1 className="font-display text-[36px] sm:text-[44px] font-medium text-ink-900 leading-[1.05] mt-4" style={{ letterSpacing: "-0.02em" }}>
-          Agent, models and evals
+          {AGENT_NAME}: autonomy, models and evals
         </h1>
         <p className="text-[13.5px] text-ink-600 mt-3 max-w-2xl leading-relaxed">
           What the agent may do alone, which model runs each task, and how each model scored on the venue&apos;s own history. Try it on{" "}
@@ -79,7 +80,7 @@ export default async function AgentOverviewPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>What the agent may do alone</CardTitle>
+          <CardTitle>What {AGENT_NAME} may do alone</CardTitle>
           <CardDescription>Autonomy depends on whether the action can be undone and whether it reaches someone outside the venue.</CardDescription>
         </CardHeader>
         <CardContent>

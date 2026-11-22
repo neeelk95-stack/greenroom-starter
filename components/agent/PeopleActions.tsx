@@ -73,7 +73,7 @@ export function PayoutPanel({
           ? note
           : !termsConfirmed
             ? "Locked: Ethan has to confirm the deal terms first."
-            : "Locked until Ethan approves and Drake accepts. Then a plain rule releases it. The agent has no tool for this step, so no prompt can make it move money."}
+            : "Locked until Ethan approves and Drake accepts. Then a plain rule releases it. Stagehand has no tool for this step, so no prompt can make it move money."}
       </p>
       {error && <div className="text-[12px] text-rose-700">{error}</div>}
     </div>

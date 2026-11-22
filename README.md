@@ -61,11 +61,11 @@ human review. The old engine could settle 38% of these shows at all.
 
 ---
 
-## The Deal Ledger agent
+## Stagehand, the Deal Ledger agent
 
-An agent that takes a show from the offer email to a settlement ready to sign,
+Stagehand is an agent that takes a show from the offer email to a settlement ready to sign,
 and stops before money moves. Open `/shows/show_coastal_spell_dispute/agent`
-(or any show → **Run the agent**), and `/agent` for routing, autonomy and the
+(or any show → **Send in Stagehand**), and `/agent` for routing, autonomy and the
 eval scorecard.
 
 | | |
@@ -97,6 +97,8 @@ shows. Cloud models need `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` in `.env.local`
 ---
 
 ## The slice: Deal Builder (this prototype)
+
+> Removed from the app on the `feat/settlement-agent` branch. The code lives on the `feat/deal-builder` branch.
 
 This fork ships a working prototype of a **Deal Builder** — a booking-time
 surface that replaces "Ethan types a deal sheet" with "Ethan approves a

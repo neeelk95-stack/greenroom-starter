@@ -21,7 +21,6 @@ import {
 import { StatusBadge, DealTypeBadge, PlainBadge } from "@/components/ui/badge";
 import type { SettlementInput } from "@/lib/settlementEngine";
 import { getLatestSettlementRecord } from "@/lib/settlementRecordStore";
-import { getLatestRationale } from "@/lib/dealRationaleStore";
 import { SettlementWorksheet } from "@/components/settlement/SettlementWorksheet";
 import {
   formatMoney,
@@ -92,10 +91,7 @@ export default async function SettlePage({
     recoups,
     venueCapacity: data.venue?.capacity ?? null,
   };
-  const [savedRecord, dealRationale] = await Promise.all([
-    getLatestSettlementRecord(show.id),
-    getLatestRationale(show.id),
-  ]);
+  const savedRecord = await getLatestSettlementRecord(show.id);
 
   const disputedRecoups = recoups.filter((r) => r.status === "disputed");
   const isDisputed = settlement?.status === "disputed" || settlement?.status === "revised" || !!settlement?.disputedAt;
@@ -154,14 +150,6 @@ export default async function SettlePage({
           <div className="rounded-lg border border-ink-200/80 bg-white px-5 py-4">
             <div className="flex items-center justify-between gap-3 mb-1.5">
               <div className="eyebrow text-[10px] text-ink-500">Deal as agreed</div>
-              {dealRationale && (
-                <Link
-                  href={`/shows/${show.id}/deal-builder/preview`}
-                  className="text-[11.5px] text-brand-700 font-medium hover:underline"
-                >
-                  Deal record from booking →
-                </Link>
-              )}
             </div>
             <div className="text-[12.5px] text-ink-800 leading-relaxed">{deal.dealNotesFreetext}</div>
           </div>

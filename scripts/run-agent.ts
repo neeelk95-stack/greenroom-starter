@@ -27,7 +27,7 @@ async function main() {
   if (!ctx) throw new Error(`No deal for ${showId}`);
   const email = sampleOfferEmail(ctx.data);
 
-  console.log(`\nDeal Ledger agent · ${ctx.data.artist?.name} · profile: ${profile}\n`);
+  console.log(`\nStagehand (Deal Ledger agent) · ${ctx.data.artist?.name} · profile: ${profile}\n`);
   console.log(email.text.split("\n").map((l) => `  │ ${l}`).join("\n"), "\n");
 
   const run = await runAgent(showId, email.text, email.from, email.fromFirstName, profile);
