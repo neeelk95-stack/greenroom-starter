@@ -200,7 +200,7 @@ export default async function AgentOverviewPage() {
           <CardTitle>Eval scorecard</CardTitle>
           <CardDescription>
             {card
-              ? `Updated ${new Date(card.generatedAt).toLocaleString("en-US")}. ${card.cases.extract} extraction cases (half the real deal notes, half paraphrased), ${card.cases.readings} two-readings cases${card.cases.readingsNew ? ` (plus ${card.cases.readingsNew} in new wording)` : ""}, ${card.cases.disputed} disputed settlements (${card.cases.disputedWithClause} have a clause the engine or the text can verify). Each model runs alone, with no routing.`
+              ? `Updated ${new Date(card.generatedAt).toLocaleString("en-US")}. ${card.cases.extract} extraction cases (half the real deal notes, half paraphrased), ${card.cases.readings} two-readings cases${card.cases.readingsNew ? ` (plus ${card.cases.readingsNew} in new wording)` : ""}. Each model runs alone, with no routing.`
               : "No scorecard yet. Run npm run eval."}
           </CardDescription>
         </CardHeader>
@@ -215,7 +215,6 @@ export default async function AgentOverviewPage() {
                   <th className="py-1.5 pr-3 font-medium">Citations</th>
                   <th className="py-1.5 pr-3 font-medium">Two readings: recall</th>
                   <th className="py-1.5 pr-3 font-medium">False flags</th>
-                  <th className="py-1.5 pr-3 font-medium">Disputed: recall</th>
                   <th className="py-1.5 pr-3 font-medium">Latency p50 / p95</th>
                   <th className="py-1.5 font-medium">Cost / 100 deals</th>
                 </tr>
@@ -232,7 +231,6 @@ export default async function AgentOverviewPage() {
                     <td className="py-2 pr-3">{r.extract ? <Gate ok={r.extract.citationsVerified >= card.gates.citationsVerified}>{pct(r.extract.citationsVerified)}</Gate> : "—"}</td>
                     <td className="py-2 pr-3">{r.readings ? <Gate ok={r.readings.recall >= card.gates.readingsRecall}>{pct(r.readings.recall)}</Gate> : "—"}</td>
                     <td className="py-2 pr-3">{r.readings ? <Gate ok={r.readings.falseFlagRateOnClear <= card.gates.falseFlagRateOnClear}>{pct(r.readings.falseFlagRateOnClear)}</Gate> : "—"}</td>
-                    <td className="py-2 pr-3 tabular text-ink-700">{r.disputed ? pct(r.disputed.recall) : "—"}</td>
                     <td className="py-2 pr-3 tabular text-ink-600 whitespace-nowrap">{r.extract ? `${r.extract.p50ms} / ${r.extract.p95ms} ms` : "—"}</td>
                     <td className="py-2 tabular text-ink-600">{r.extract ? `$${(r.extract.costPer100 + (r.readings?.costPer100 ?? 0)).toFixed(4)}` : "—"}</td>
                   </tr>

@@ -1,13 +1,13 @@
 # Agent eval scorecard
 
-Updated 2026-11-22T18:48:58.220Z. 20 extraction cases (half real deal notes, half paraphrased), 29 two-readings cases, 12 in new wording, 24 disputed settlements (9 involve a clause the engine or text can verify).
+Updated 2026-11-22T18:48:58.220Z. 20 extraction cases (half real deal notes, half paraphrased), 29 two-readings cases, 12 in new wording.
 
-| Model | Field accuracy | Citations verified | Two-readings recall | False flags on clear emails | Disputed: recall | p50 / p95 latency (extract) | Cost per 100 extractions |
-|---|---|---|---|---|---|---|---|
-| Rules (no AI) | 87.4% | 100% | 52.6% (10 of 19) | 0% (0 of 10) | 90% | 0 / 3 ms | $0.0000 |
-| Gemma 4 12B (local) (first run (Nov 21), before the code checks; entered from its printed results) | 100% | 100% | 89.5% (17 of 19) | 60% (6 of 10) | 100% | 18564 / 31587 ms | $0.0000 |
-| Claude Sonnet 5.5 | — | — | 94.7% (18 of 19) | 10% (1 of 10) | 60% | — | — |
-| Claude Haiku 5.5 | 100% | 100% | 78.9% (15 of 19) | 0% (0 of 10) | 60% | 2096 / 2780 ms | $0.0285 |
+| Model | Field accuracy | Citations verified | Two-readings recall | False flags on clear emails | p50 / p95 latency (extract) | Cost per 100 extractions |
+|---|---|---|---|---|---|---|
+| Rules (no AI) | 87.4% | 100% | 52.6% (10 of 19) | 0% (0 of 10) | 0 / 3 ms | $0.0000 |
+| Gemma 4 12B (local) (first run (Nov 21), before the code checks; entered from its printed results) | 100% | 100% | 89.5% (17 of 19) | 60% (6 of 10) | 18564 / 31587 ms | $0.0000 |
+| Claude Sonnet 5.5 | — | — | 94.7% (18 of 19) | 10% (1 of 10) | — | — |
+| Claude Haiku 5.5 | 100% | 100% | 78.9% (15 of 19) | 0% (0 of 10) | 2096 / 2780 ms | $0.0285 |
 
 Release gates: field accuracy ≥ 98%, citations 100%, two-readings recall ≥ 90%, false flags on clear emails ≤ 10%.
 

@@ -268,13 +268,13 @@ async function main() {
   const frac = (a?: number, b?: number) => (a != null && b != null ? ` (${a} of ${b})` : "");
   const c = report.cases;
   const lines: string[] = [];
-  lines.push(`# Agent eval scorecard`, ``, `Updated ${report.generatedAt}. ${c.extract} extraction cases (half real deal notes, half paraphrased), ${c.readings} two-readings cases, ${c.readingsNew ?? 0} in new wording, ${c.disputed} disputed settlements (${c.disputedWithClause} involve a clause the engine or text can verify).`, ``);
-  lines.push(`| Model | Field accuracy | Citations verified | Two-readings recall | False flags on clear emails | Disputed: recall | p50 / p95 latency (extract) | Cost per 100 extractions |`);
-  lines.push(`|---|---|---|---|---|---|---|---|`);
+  lines.push(`# Agent eval scorecard`, ``, `Updated ${report.generatedAt}. ${c.extract} extraction cases (half real deal notes, half paraphrased), ${c.readings} two-readings cases, ${c.readingsNew ?? 0} in new wording.`, ``);
+  lines.push(`| Model | Field accuracy | Citations verified | Two-readings recall | False flags on clear emails | p50 / p95 latency (extract) | Cost per 100 extractions |`);
+  lines.push(`|---|---|---|---|---|---|---|`);
   for (const r of report.results) {
-    const ex = r.extract as E | null, rd = r.readings as R | null, dp = r.disputed as R | null;
+    const ex = r.extract as E | null, rd = r.readings as R | null;
     lines.push(
-      `| ${r.label}${(rd as { note?: string } | null)?.note ? ` (${(rd as { note?: string }).note})` : ""} | ${ex ? fmtPct(ex.fieldAccuracy) : "—"} | ${ex ? fmtPct(ex.citationsVerified) : "—"} | ${rd ? fmtPct(rd.recall) + frac(rd.caught, rd.positives) : "—"} | ${rd ? fmtPct(rd.falseFlagRateOnClear) + frac(rd.clearFlagged, rd.clear) : "—"} | ${dp ? fmtPct(dp.recall) : "—"} | ${ex ? `${ex.p50ms} / ${ex.p95ms} ms` : "—"} | ${ex ? `$${ex.costPer100.toFixed(4)}` : "—"} |`,
+      `| ${r.label}${(rd as { note?: string } | null)?.note ? ` (${(rd as { note?: string }).note})` : ""} | ${ex ? fmtPct(ex.fieldAccuracy) : "—"} | ${ex ? fmtPct(ex.citationsVerified) : "—"} | ${rd ? fmtPct(rd.recall) + frac(rd.caught, rd.positives) : "—"} | ${rd ? fmtPct(rd.falseFlagRateOnClear) + frac(rd.clearFlagged, rd.clear) : "—"} | ${ex ? `${ex.p50ms} / ${ex.p95ms} ms` : "—"} | ${ex ? `$${ex.costPer100.toFixed(4)}` : "—"} |`,
     );
   }
   lines.push(``, `Release gates: field accuracy ≥ ${fmtPct(gates.extractFieldAccuracy)}, citations ${fmtPct(gates.citationsVerified)}, two-readings recall ≥ ${fmtPct(gates.readingsRecall)}, false flags on clear emails ≤ ${fmtPct(gates.falseFlagRateOnClear)}.`);
